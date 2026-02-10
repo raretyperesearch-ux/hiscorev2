@@ -576,12 +576,16 @@ function SubmitWalletModal({ onClose }) {
 
 /* ======================= TOKEN ICON ======================= */
 function TokenIcon({ address, symbol, size = 28 }) {
-  const [failed, setFailed] = useState(false);
-  const logoUrl = address ? `https://assets.smold.app/api/token/8453/${address}/logo-128.png` : null;
-  const fallbackUrl = address ? `https://token-icons.s3.amazonaws.com/8453/${address.toLowerCase()}.png` : null;
-  const [src, setSrc] = useState(logoUrl);
+  const [srcIdx, setSrcIdx] = useState(0);
+  const addr = address ? address.toLowerCase() : null;
 
-  if (!address || failed) {
+  const sources = addr ? [
+    `https://dd.dexscreener.com/ds-data/tokens/base/${addr}.png`,
+    `https://assets.smold.app/api/token/8453/${addr}/logo-128.png`,
+    `https://token-icons.s3.amazonaws.com/8453/${addr}.png`,
+  ] : [];
+
+  if (!addr || srcIdx >= sources.length) {
     return (
       <div style={{
         width: size, height: size, borderRadius: size * 0.28, background: K.accentLight,
@@ -593,13 +597,10 @@ function TokenIcon({ address, symbol, size = 28 }) {
 
   return (
     <img
-      src={src}
+      src={sources[srcIdx]}
       alt={symbol || ""}
       style={{ width: size, height: size, borderRadius: size * 0.28, flexShrink: 0, objectFit: "cover" }}
-      onError={() => {
-        if (src === logoUrl && fallbackUrl) setSrc(fallbackUrl);
-        else setFailed(true);
-      }}
+      onError={() => setSrcIdx(i => i + 1)}
     />
   );
 }
