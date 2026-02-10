@@ -154,11 +154,14 @@ const DARK = {
   scrollThumb: "#3f3f46", scrollHover: "#52525b",
 };
 
-/* Global mutable theme — updated by toggle */
+/* Global theme — set by component */
 let K = DARK;
-let cardShadow = K.cardShadow;
-let cardShadowHover = K.cardShadowHover;
-let tileShadow = K.tileShadow;
+let cardShadow = DARK.cardShadow;
+let cardShadowHover = DARK.cardShadowHover;
+let tileShadow = DARK.tileShadow;
+function applyTheme(t) {
+  K = t; cardShadow = t.cardShadow; cardShadowHover = t.cardShadowHover; tileShadow = t.tileShadow;
+}
 
 function getStyles() { return [
   "@import url('https://cdn.jsdelivr.net/npm/geist@1.2.0/dist/fonts/geist-sans/style.min.css');",
@@ -1361,19 +1364,20 @@ export default function HiScore() {
   const [theme, setTheme] = useState(() => {
     try { return localStorage.getItem("hs-theme") || "dark"; } catch { return "dark"; }
   });
+  const [, forceUpdate] = useState(0);
 
-  // Apply theme
+  // Apply theme synchronously every render
+  applyTheme(theme === "dark" ? DARK : LIGHT);
+
   useEffect(() => {
-    const t = theme === "dark" ? DARK : LIGHT;
-    Object.assign(K, t);
-    cardShadow = t.cardShadow;
-    cardShadowHover = t.cardShadowHover;
-    tileShadow = t.tileShadow;
-    document.body.style.background = t.bg;
+    document.body.style.background = K.bg;
     try { localStorage.setItem("hs-theme", theme); } catch {}
   }, [theme]);
 
-  const toggleTheme = () => setTheme(t => t === "dark" ? "light" : "dark");
+  const toggleTheme = () => {
+    setTheme(t => t === "dark" ? "light" : "dark");
+    forceUpdate(n => n + 1);
+  };
   const feedRef = useRef(null);
   const firstLoad = useRef(true);
   const prevRanks = useRef({});
@@ -1435,11 +1439,11 @@ export default function HiScore() {
         background: K.white, height: 48,
         position: "relative",
       }}>
-        <div style={{ position: "absolute", left: 16 }}>
+        <div style={{ position: "absolute", left: 12 }}>
           <button onClick={toggleTheme} style={{
-            width: 28, height: 28, borderRadius: 7, border: "1px solid " + K.border,
-            background: K.card, cursor: "pointer", fontSize: 14, lineHeight: 1,
-            display: "flex", alignItems: "center", justifyContent: "center",
+            width: 22, height: 22, borderRadius: 6, border: "1px solid " + K.border,
+            background: K.card, cursor: "pointer", fontSize: 11, lineHeight: 1,
+            display: "flex", alignItems: "center", justifyContent: "center", padding: 0,
           }}>{theme === "dark" ? "\u2600\ufe0f" : "\ud83c\udf19"}</button>
         </div>
         <img src={LOGO_SVG} alt="" style={{ width: 22, height: 22, borderRadius: 5 }} />
