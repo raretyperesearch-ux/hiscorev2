@@ -1245,7 +1245,7 @@ function MobileProfileSheet({ entry, trades, onClose, onShare }) {
   );
 }
 
-/* ======================= MOBILE LIVE FEED ======================= */
+/* ======================= MOBILE RECENT TRADES ======================= */
 function MobileLiveFeed({ trades, liveMin, setLiveMin }) {
   return (
     <div>
@@ -1258,7 +1258,7 @@ function MobileLiveFeed({ trades, liveMin, setLiveMin }) {
           color: K.profit, background: K.profitBg,
           padding: "2px 8px", borderRadius: 4,
           border: "1px solid rgba(22,163,74,0.15)",
-        }}>LIVE</span>
+        }}>RECENT</span>
         <div style={{ display: "flex", gap: 3 }}>
           {[{label:"All",val:0},{label:"$100+",val:100},{label:"$500+",val:500},{label:"$1K+",val:1000}].map((f) => (
             <button key={f.val} onClick={() => setLiveMin(f.val)} style={{
@@ -1371,7 +1371,7 @@ export default function HiScore() {
   const isMobile = useIsMobile();
   const getInitialTab = () => {
     const h = window.location.hash.replace("#", "");
-    return ["ranks", "live", "search"].includes(h) ? h : "ranks";
+    return ["ranks", "recent", "search"].includes(h) ? h : "ranks";
   };
   const [tab, setTabRaw] = useState(getInitialTab);
   const setTab = (t) => { window.location.hash = t; setTabRaw(t); };
@@ -1512,7 +1512,7 @@ export default function HiScore() {
             )}
           </div>
         )}
-        {tab === "live" && <MobileLiveFeed trades={trades} liveMin={liveMin} setLiveMin={setLiveMin} />}
+        {tab === "recent" && <MobileLiveFeed trades={trades} liveMin={liveMin} setLiveMin={setLiveMin} />}
         {tab === "search" && (
           <div>
             <div style={{ padding: "14px 16px", borderBottom: "1px solid " + K.borderLight }}>
@@ -1532,7 +1532,7 @@ export default function HiScore() {
       }}>
         {[
           { id: "ranks", label: "Ranks", icon: "\u2606" },
-          { id: "live", label: "Live", icon: "\u25CF" },
+          { id: "recent", label: "Recent", icon: "\u25CF" },
           { id: "search", label: "Search", icon: "\u2315" },
         ].map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} style={{
@@ -1601,7 +1601,7 @@ export default function HiScore() {
         }}>
           {[
             { id: "ranks", label: "HiScore" },
-            { id: "live", label: "Live" },
+            { id: "recent", label: "Recent" },
             { id: "search", label: "Lookup" },
           ].map(t => (
             <button key={t.id} onClick={() => setTab(t.id)} style={{
@@ -1674,7 +1674,7 @@ export default function HiScore() {
                 )}
               </div>
             )}
-            {tab === "live" && (
+            {tab === "recent" && (
               <div>
                 <div style={{
                   padding: "14px 24px", display: "flex", alignItems: "center",
@@ -1687,7 +1687,7 @@ export default function HiScore() {
                       color: K.profit, background: K.profitBg,
                       padding: "2px 8px", borderRadius: 4,
                       border: "1px solid rgba(22,163,74,0.15)",
-                    }}>LIVE</span>
+                    }}>RECENT</span>
                     <div style={{ display: "flex", gap: 3 }}>
                       {[{label:"\u2265 $100",val:100},{label:"\u2265 $500",val:500},{label:"\u2265 $1K",val:1000}].map((f) => (
                         <button key={f.val} onClick={() => setLiveMin(liveMin === f.val ? 0 : f.val)} style={{
@@ -1761,8 +1761,8 @@ export default function HiScore() {
             )}
           </div>
 
-          {/* LIVE FEED - only show on non-live tabs */}
-          {tab !== "live" && <div style={{
+          {/* RECENT TRADES - only show on non-recent tabs */}
+          {tab !== "recent" && <div style={{
             height: 190, flexShrink: 0,
             borderTop: "1px solid " + K.border,
             display: "flex", flexDirection: "column",
@@ -1774,13 +1774,13 @@ export default function HiScore() {
               borderBottom: "1px solid " + K.borderLight,
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontFamily: ff, fontSize: 14, fontWeight: 600, color: K.text }}>Live Feed</span>
+                <span style={{ fontFamily: ff, fontSize: 14, fontWeight: 600, color: K.text }}>Recent Trades</span>
                 <span style={{
                   fontFamily: ff, fontSize: 10, fontWeight: 600,
                   color: K.profit, background: K.profitBg,
                   padding: "2px 8px", borderRadius: 4,
                   border: "1px solid rgba(22,163,74,0.15)",
-                }}>LIVE</span>
+                }}>RECENT</span>
               </div>
               <div style={{ display: "flex", gap: 3 }}>
                 {[{id:"all",label:"All"},{id:"buy",label:"Buys"},{id:"sell",label:"Sells"},{id:"whale",label:"Whale"}].map((f) => (
