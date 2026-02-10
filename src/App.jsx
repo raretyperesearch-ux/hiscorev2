@@ -691,7 +691,7 @@ function HiscoresTable({ onSelect, selected, leaders }) {
             }}>{e.wr.toFixed(1) + "%"}</span>
 
             {/* Copy */}
-            <button onClick={(ev) => { ev.stopPropagation(); window.open("https://wallet.xyz/@HISCORE/copy/" + e.wallet.addr, "_blank"); }} style={{
+            <button onClick={(ev) => { ev.stopPropagation(); window.open("https://wallet.xyz/@HISCORE", "_blank"); }} style={{
               fontFamily: mono, fontSize: 9, fontWeight: 700,
               color: K.white, background: K.accent,
               border: "none", borderRadius: 5,
@@ -740,7 +740,7 @@ function SideProfile({ entry, trades, onShare }) {
         <div style={{ fontFamily: ff, fontSize: 18, fontWeight: 700, color: K.text }}>{w.label}</div>
         <div onClick={() => window.open("https://basescan.org/address/" + w.addr, "_blank")} style={{ fontFamily: mono, fontSize: 12, color: K.cyan, marginTop: 2, cursor: "pointer" }} onMouseEnter={(ev) => ev.currentTarget.style.textDecoration = "underline"} onMouseLeave={(ev) => ev.currentTarget.style.textDecoration = "none"}>{shortAddr(w.addr)}</div>
         <div style={{ display: "flex", gap: 8, marginTop: 12, width: "100%" }}>
-          <button onClick={() => window.open("https://wallet.xyz/@HISCORE/copy/" + w.addr, "_blank")} style={{
+          <button onClick={() => window.open("https://wallet.xyz/@HISCORE", "_blank")} style={{
             fontFamily: ff, fontSize: 12, fontWeight: 600,
             color: K.white, background: K.accent,
             border: "none", borderRadius: 8,
@@ -1103,7 +1103,7 @@ function MobileProfileSheet({ entry, trades, onClose, onShare }) {
 
           {/* Action buttons */}
           <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={() => window.open("https://wallet.xyz/@HISCORE/copy/" + w.addr, "_blank")} style={{
+            <button onClick={() => window.open("https://wallet.xyz/@HISCORE", "_blank")} style={{
               fontFamily: ff, fontSize: 13, fontWeight: 600,
               color: K.white, background: K.accent,
               border: "none", borderRadius: 10,
