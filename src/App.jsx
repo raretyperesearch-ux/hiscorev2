@@ -390,14 +390,6 @@ function SideProfile({ entry, trades }) {
         }}>
           {(pnlPos ? "+" : "") + fmt(entry.pnl)}
         </div>
-        <span style={{
-          fontFamily: mono, fontSize: 13, marginTop: 4, display: "inline-block",
-          color: entry.pnl24h >= 0 ? K.profit : K.loss,
-          background: entry.pnl24h >= 0 ? K.profitBg : K.lossBg,
-          padding: "2px 10px", borderRadius: 6,
-        }}>
-          {(entry.pnl24h >= 0 ? "+" : "") + fmt(entry.pnl24h) + " today"}
-        </span>
       </Tile>
 
       {/* Stats row */}
