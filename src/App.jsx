@@ -88,6 +88,7 @@ function mapLeaderboard(apiData) {
     },
     direction: t.direction,
     token_symbol: t.token_symbol,
+    token_address: t.token_address || "",
     usd_amount: t.usd_amount || 0,
     traded_at: t.traded_at,
     dex: t.dex || "Base DEX",
@@ -573,6 +574,36 @@ function SubmitWalletModal({ onClose }) {
   );
 }
 
+/* ======================= TOKEN ICON ======================= */
+function TokenIcon({ address, symbol, size = 28 }) {
+  const [failed, setFailed] = useState(false);
+  const logoUrl = address ? `https://assets.smold.app/api/token/8453/${address}/logo-128.png` : null;
+  const fallbackUrl = address ? `https://token-icons.s3.amazonaws.com/8453/${address.toLowerCase()}.png` : null;
+  const [src, setSrc] = useState(logoUrl);
+
+  if (!address || failed) {
+    return (
+      <div style={{
+        width: size, height: size, borderRadius: size * 0.28, background: K.accentLight,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontFamily: ff, fontSize: size * 0.36, fontWeight: 700, color: K.accent, flexShrink: 0,
+      }}>{(symbol || "??").slice(0, 2)}</div>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={symbol || ""}
+      style={{ width: size, height: size, borderRadius: size * 0.28, flexShrink: 0, objectFit: "cover" }}
+      onError={() => {
+        if (src === logoUrl && fallbackUrl) setSrc(fallbackUrl);
+        else setFailed(true);
+      }}
+    />
+  );
+}
+
 function FeedLine({ trade }) {
   const t = tier(trade.usd_amount);
   const buy = trade.direction === "buy";
@@ -807,11 +838,7 @@ function SideProfile({ entry, trades, onShare }) {
                 display: "flex", alignItems: "center", gap: 10, padding: "9px 12px",
                 borderBottom: i < entry.holdings.length - 1 ? "1px solid " + K.borderLight : "none",
               }}>
-                <div style={{
-                  width: 28, height: 28, borderRadius: 8, background: K.accentLight,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontFamily: ff, fontSize: 10, fontWeight: 700, color: K.accent,
-                }}>{(h.token_symbol || "??").slice(0,2)}</div>
+                <TokenIcon address={h.token_address} symbol={h.token_symbol} size={28} />
                 <div style={{ flex: 1 }}>
                   <div
                     onClick={(ev) => { ev.stopPropagation(); window.open("https://basescan.org/token/" + h.token_address, "_blank"); }}
@@ -1055,11 +1082,7 @@ function MobileProfileSheet({ entry, trades, onClose, onShare }) {
                     display: "flex", alignItems: "center", gap: 10, padding: "9px 14px",
                     borderBottom: i < entry.holdings.length - 1 ? "1px solid " + K.borderLight : "none",
                   }}>
-                    <div style={{
-                      width: 26, height: 26, borderRadius: 7, background: K.accentLight,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontFamily: ff, fontSize: 9, fontWeight: 700, color: K.accent,
-                    }}>{(h.token_symbol || "??").slice(0,2)}</div>
+                    <TokenIcon address={h.token_address} symbol={h.token_symbol} size={26} />
                     <div style={{ flex: 1 }}>
                       <div style={{ fontFamily: ff, fontSize: 13, fontWeight: 600, color: K.text }}>{h.token_symbol || "UNKNOWN"}</div>
                       <div style={{ fontFamily: mono, fontSize: 10, color: K.textMuted }}>{fmt(h.est_value_usd)} cost</div>
@@ -1571,12 +1594,7 @@ export default function HiScore() {
                           <span className="live-trader-name" style={{ fontFamily: ff, fontSize: 13, fontWeight: 500, color: K.accent }}>{t.wallet.label}</span>
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <div style={{
-                            width: 28, height: 28, borderRadius: 8,
-                            background: K.accentLight,
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            fontFamily: ff, fontSize: 9, fontWeight: 700, color: K.accent,
-                          }}>{t.token_symbol.slice(0, 2)}</div>
+                          <TokenIcon address={t.token_address} symbol={t.token_symbol} size={28} />
                           <span style={{ fontFamily: ff, fontSize: 13, fontWeight: 500, color: K.cyan }}>{t.token_symbol}</span>
                         </div>
                         <span style={{
