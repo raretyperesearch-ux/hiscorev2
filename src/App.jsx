@@ -1087,7 +1087,12 @@ function SearchPanel({ onSelect, leaders }) {
 /* ======================= MAIN ======================= */
 export default function HiScore() {
   const isMobile = useIsMobile();
-  const [tab, setTab] = useState("ranks");
+  const getInitialTab = () => {
+    const h = window.location.hash.replace("#", "");
+    return ["ranks", "live", "search"].includes(h) ? h : "ranks";
+  };
+  const [tab, setTabRaw] = useState(getInitialTab);
+  const setTab = (t) => { window.location.hash = t; setTabRaw(t); };
   const [selected, setSelected] = useState(null);
   const [mobileProfile, setMobileProfile] = useState(null);
   const [leaders, setLeaders] = useState([]);
