@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { Analytics } from "@vercel/analytics/react";
 
 /* ======================= LOGO IMAGE ======================= */
 function LogoImage() {
@@ -1856,6 +1857,7 @@ export default function HiScore() {
       {shareCard && <ShareCard entry={shareCard} period={period} onClose={() => setShareCard(null)} />}
       {showSubmit && <SubmitWalletModal onClose={() => setShowSubmit(false)} />}
     </div>
+    <Analytics />
     </>
   );
 
@@ -2110,6 +2112,7 @@ export default function HiScore() {
       {shareCard && <ShareCard entry={shareCard} period={period} onClose={() => setShareCard(null)} />}
       {showSubmit && <SubmitWalletModal onClose={() => setShowSubmit(false)} />}
     </div>
+    <Analytics />
     </>
   );
 }
