@@ -165,6 +165,9 @@ const STYLES = [
   "@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }",
   "@keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }",
   "@keyframes fadeIn { from{opacity:0} to{opacity:1} }",
+  "@keyframes shimmer { 0%{background-position:-400px 0} 100%{background-position:400px 0} }",
+  "@keyframes livePulse { 0%,100%{box-shadow:0 0 0 0 rgba(22,163,74,0.4)} 50%{box-shadow:0 0 0 4px rgba(22,163,74,0)} }",
+  "@keyframes gradientShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }",
   "",
   "* { box-sizing:border-box; margin:0; padding:0; }",
   "body { background:" + K.bg + "; overflow:hidden; -webkit-tap-highlight-color: transparent; }",
@@ -172,6 +175,8 @@ const STYLES = [
   "::-webkit-scrollbar-track { background:transparent; }",
   "::-webkit-scrollbar-thumb { background:#d4d4d8; border-radius:3px; }",
   "::-webkit-scrollbar-thumb:hover { background:#a1a1aa; }",
+  ".tap-scale { transition: transform 0.1s ease; }",
+  ".tap-scale:active { transform: scale(0.97); }",
 ].join("\n");
 
 const ff = "'Geist Sans', 'Geist', -apple-system, sans-serif";
@@ -186,6 +191,7 @@ function Tile({ children, style: sx, onClick, hover }) {
       onClick={onClick}
       onMouseEnter={() => hover !== false && setH(true)}
       onMouseLeave={() => hover !== false && setH(false)}
+      className={onClick ? "tap-scale" : ""}
       style={{
         background: K.card,
         border: "1px solid " + (h ? K.border : K.borderLight),
@@ -197,6 +203,213 @@ function Tile({ children, style: sx, onClick, hover }) {
       }}
     >
       {children}
+    </div>
+  );
+}
+
+/* ======================= SKELETON LOADERS ======================= */
+function Shimmer({ width, height, borderRadius, style }) {
+  return (
+    <div style={{
+      width: width || "100%", height: height || 14, borderRadius: borderRadius || 6,
+      background: "linear-gradient(90deg, #f0f0f4 25%, #e8e8ec 37%, #f0f0f4 63%)",
+      backgroundSize: "400px 100%",
+      animation: "shimmer 1.4s ease infinite",
+      ...style,
+    }} />
+  );
+}
+
+function SkeletonRow({ i }) {
+  return (
+    <div style={{
+      display: "grid", gridTemplateColumns: "30px 1fr 80px",
+      alignItems: "center", padding: "14px 16px", gap: 8,
+      borderBottom: "1px solid " + K.borderLight,
+      animation: "fadeUp 0.3s ease " + (i * 0.05) + "s both",
+    }}>
+      <Shimmer width={22} height={22} borderRadius={6} />
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <Shimmer width={36} height={36} borderRadius={10} />
+        <div>
+          <Shimmer width={90} height={12} style={{ marginBottom: 6 }} />
+          <Shimmer width={60} height={10} />
+        </div>
+      </div>
+      <Shimmer width={60} height={16} borderRadius={6} style={{ marginLeft: "auto" }} />
+    </div>
+  );
+}
+
+function SkeletonDesktopRow({ i }) {
+  return (
+    <div style={{
+      display: "grid", gridTemplateColumns: "40px 2fr 110px 100px 70px 52px",
+      alignItems: "center", padding: "12px 20px", gap: 4,
+      borderBottom: "1px solid " + K.borderLight,
+      animation: "fadeUp 0.3s ease " + (i * 0.05) + "s both",
+    }}>
+      <Shimmer width={22} height={22} borderRadius={6} />
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <Shimmer width={36} height={36} borderRadius={10} />
+        <div>
+          <Shimmer width={100} height={13} style={{ marginBottom: 5 }} />
+          <Shimmer width={70} height={10} />
+        </div>
+      </div>
+      <Shimmer width={70} height={16} borderRadius={6} style={{ marginLeft: "auto" }} />
+      <Shimmer width={55} height={12} style={{ marginLeft: "auto" }} />
+      <Shimmer width={40} height={12} style={{ marginLeft: "auto" }} />
+      <Shimmer width={44} height={22} borderRadius={5} />
+    </div>
+  );
+}
+
+function SkeletonProfile() {
+  return (
+    <div style={{ padding: 16 }}>
+      <div style={{ textAlign: "center", marginBottom: 20 }}>
+        <Shimmer width={72} height={72} borderRadius={18} style={{ margin: "0 auto 12px" }} />
+        <Shimmer width={120} height={16} style={{ margin: "0 auto 8px" }} />
+        <Shimmer width={90} height={12} style={{ margin: "0 auto" }} />
+      </div>
+      <Shimmer height={80} borderRadius={14} style={{ marginBottom: 10 }} />
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 10 }}>
+        <Shimmer height={60} borderRadius={14} />
+        <Shimmer height={60} borderRadius={14} />
+        <Shimmer height={60} borderRadius={14} />
+      </div>
+      <Shimmer height={120} borderRadius={14} style={{ marginBottom: 10 }} />
+      <Shimmer height={100} borderRadius={14} />
+    </div>
+  );
+}
+
+/* ======================= SHARE CARD ======================= */
+function ShareCard({ entry, onClose }) {
+  const canvasRef = useRef(null);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!entry || !canvasRef.current) return;
+    const c = canvasRef.current;
+    const ctx = c.getContext("2d");
+    const W = 600, H = 340;
+    c.width = W; c.height = H;
+
+    // Background
+    ctx.fillStyle = "#18181b";
+    ctx.beginPath();
+    ctx.roundRect(0, 0, W, H, 16);
+    ctx.fill();
+
+    // Accent bar top
+    const grad = ctx.createLinearGradient(0, 0, W, 0);
+    grad.addColorStop(0, "#e5432e");
+    grad.addColorStop(1, "#f87171");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, 4);
+
+    // Brand
+    ctx.fillStyle = "#e5432e";
+    ctx.font = "bold 14px sans-serif";
+    ctx.fillText("HISCORE", 28, 36);
+    ctx.fillStyle = "#71717a";
+    ctx.font = "12px sans-serif";
+    ctx.fillText("hiscore.me", W - 100, 36);
+
+    // Player name
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 28px sans-serif";
+    ctx.fillText(entry.wallet.label, 28, 85);
+
+    // Address
+    ctx.fillStyle = "#00c8d6";
+    ctx.font = "13px monospace";
+    ctx.fillText(shortAddr(entry.wallet.addr), 28, 108);
+
+    // PnL
+    const pnlPos = entry.pnl >= 0;
+    ctx.fillStyle = pnlPos ? "#16a34a" : "#dc2626";
+    ctx.font = "bold 48px monospace";
+    ctx.fillText((pnlPos ? "+" : "") + fmt(entry.pnl), 28, 175);
+
+    ctx.fillStyle = "#71717a";
+    ctx.font = "11px sans-serif";
+    ctx.fillText("TOTAL PROFIT", 28, 195);
+
+    // Stats row
+    const stats = [
+      { l: "WIN RATE", v: entry.wr.toFixed(1) + "%" },
+      { l: "TRADES", v: String(entry.trades) },
+      { l: "VOLUME", v: fmt(entry.vol) },
+    ];
+    stats.forEach((s, i) => {
+      const x = 28 + i * 180;
+      ctx.fillStyle = "#a1a1aa";
+      ctx.font = "10px sans-serif";
+      ctx.fillText(s.l, x, 240);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 22px monospace";
+      ctx.fillText(s.v, x, 268);
+    });
+
+    // Footer
+    ctx.fillStyle = "#27272a";
+    ctx.fillRect(0, H - 44, W, 44);
+    ctx.fillStyle = "#71717a";
+    ctx.font = "11px sans-serif";
+    ctx.fillText("Base Chain \u2022 Powered by wallet.xyz", 28, H - 18);
+    ctx.fillStyle = "#e5432e";
+    ctx.fillText("Share on X \u2197", W - 100, H - 18);
+  }, [entry]);
+
+  const handleDownload = () => {
+    const link = document.createElement("a");
+    link.download = entry.wallet.label + "-hiscore.png";
+    link.href = canvasRef.current.toDataURL("image/png");
+    link.click();
+  };
+
+  const handleCopyImage = async () => {
+    try {
+      const blob = await new Promise(r => canvasRef.current.toBlob(r, "image/png"));
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch { handleDownload(); }
+  };
+
+  if (!entry) return null;
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 2000 }} onClick={onClose}>
+      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.6)", animation: "fadeIn 0.2s ease" }} />
+      <div onClick={e => e.stopPropagation()} style={{
+        position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
+        animation: "fadeUp 0.3s ease",
+      }}>
+        <canvas ref={canvasRef} style={{ borderRadius: 16, width: 360, height: 204, display: "block" }} />
+        <div style={{ display: "flex", gap: 8, marginTop: 12, justifyContent: "center" }}>
+          <button onClick={handleCopyImage} style={{
+            fontFamily: ff, fontSize: 13, fontWeight: 600,
+            color: "#fff", background: K.accent, border: "none", borderRadius: 10,
+            padding: "10px 24px", cursor: "pointer",
+          }}>{copied ? "\u2713 Copied!" : "\u2398 Copy Image"}</button>
+          <button onClick={handleDownload} style={{
+            fontFamily: ff, fontSize: 13, fontWeight: 500,
+            color: "#fff", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)",
+            borderRadius: 10, padding: "10px 24px", cursor: "pointer",
+          }}>{"\u2193 Download"}</button>
+          <button onClick={() => {
+            const text = `${entry.wallet.label} on @HiScoreBase\n${entry.pnl >= 0 ? "+" : ""}${fmt(entry.pnl)} PnL | ${entry.wr.toFixed(1)}% WR | ${entry.trades} trades\n\nhiscore.me`;
+            window.open("https://x.com/intent/tweet?text=" + encodeURIComponent(text), "_blank");
+          }} style={{
+            fontFamily: ff, fontSize: 13, fontWeight: 500,
+            color: "#fff", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)",
+            borderRadius: 10, padding: "10px 24px", cursor: "pointer",
+          }}>Post on X</button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -334,7 +547,7 @@ function HiscoresTable({ onSelect, selected, leaders }) {
 }
 
 /* ======================= SIDE PROFILE ======================= */
-function SideProfile({ entry, trades }) {
+function SideProfile({ entry, trades, onShare }) {
   if (!entry) return (
     <div style={{
       display: "flex", alignItems: "center", justifyContent: "center", height: "100%",
@@ -378,7 +591,7 @@ function SideProfile({ entry, trades }) {
           onMouseEnter={(ev) => ev.currentTarget.style.opacity = "0.85"}
           onMouseLeave={(ev) => ev.currentTarget.style.opacity = "1"}
           >{"\u2197 Copy Trader"}</button>
-          <button onClick={() => window.open("https://wallet.xyz/address/" + w.addr, "_blank")} style={{
+          <button onClick={() => { if (typeof onShare === "function") onShare(entry); }} style={{
             fontFamily: ff, fontSize: 12, fontWeight: 500,
             color: K.textSec, background: K.white,
             border: "1px solid " + K.border, borderRadius: 8,
@@ -387,7 +600,7 @@ function SideProfile({ entry, trades }) {
           }}
           onMouseEnter={(ev) => { ev.currentTarget.style.borderColor = K.accent; ev.currentTarget.style.color = K.accent; }}
           onMouseLeave={(ev) => { ev.currentTarget.style.borderColor = K.border; ev.currentTarget.style.color = K.textSec; }}
-          >Profile</button>
+          >{"\u2b06 Share"}</button>
         </div>
       </div>
 
@@ -550,7 +763,7 @@ function MobileTable({ leaders, onSelect, selected }) {
         const medals = [K.gold, K.silver, K.bronze];
         const medalBgs = ["#fffbeb", "#fafafa", "#fff7ed"];
         return (
-          <div key={i} onClick={() => onSelect(e)} style={{
+          <div key={i} onClick={() => onSelect(e)} className="tap-scale" style={{
             display: "grid", gridTemplateColumns: "30px 1fr 80px",
             alignItems: "center", padding: "14px 16px", gap: 8,
             cursor: "pointer", borderBottom: "1px solid " + K.borderLight,
@@ -594,7 +807,7 @@ function MobileTable({ leaders, onSelect, selected }) {
 }
 
 /* ======================= MOBILE PROFILE SHEET ======================= */
-function MobileProfileSheet({ entry, trades, onClose }) {
+function MobileProfileSheet({ entry, trades, onClose, onShare }) {
   if (!entry) return null;
   const w = entry.wallet;
   const pnlPos = entry.pnl >= 0;
@@ -737,12 +950,12 @@ function MobileProfileSheet({ entry, trades, onClose }) {
               border: "none", borderRadius: 10,
               padding: "12px 0", cursor: "pointer", flex: 1,
             }}>{"\u2197 Copy Trader"}</button>
-            <button onClick={() => window.open("https://basescan.org/address/" + w.addr, "_blank")} style={{
+            <button onClick={() => { if (typeof onShare === "function") onShare(entry); }} style={{
               fontFamily: ff, fontSize: 13, fontWeight: 500,
               color: K.textSec, background: K.white,
               border: "1px solid " + K.border, borderRadius: 10,
               padding: "12px 0", cursor: "pointer", flex: 1,
-            }}>Basescan</button>
+            }}>{"\u2b06 Share"}</button>
           </div>
         </div>
       </div>
@@ -883,6 +1096,7 @@ export default function HiScore() {
   const [period, setPeriod] = useState("all");
   const [liveMin, setLiveMin] = useState(0);
   const [feedFilter, setFeedFilter] = useState("all");
+  const [shareCard, setShareCard] = useState(null);
   const feedRef = useRef(null);
   const firstLoad = useRef(true);
 
@@ -930,11 +1144,18 @@ export default function HiScore() {
       <header style={{
         display: "flex", alignItems: "center", justifyContent: "center",
         padding: "0 16px", flexShrink: 0,
-        borderBottom: "1px solid " + K.borderLight,
+        borderBottom: "none",
         background: K.white, height: 48,
+        position: "relative",
       }}>
         <img src={LOGO_SVG} alt="" style={{ width: 22, height: 22, borderRadius: 5 }} />
         <span style={{ fontFamily: ff, fontSize: 16, fontWeight: 700, letterSpacing: "0.06em", marginLeft: 8 }}>HISCORE</span>
+        <div style={{
+          position: "absolute", bottom: 0, left: 0, right: 0, height: 2,
+          background: "linear-gradient(90deg, " + K.accent + ", #f87171, " + K.accent + ")",
+          backgroundSize: "200% 100%",
+          animation: "gradientShift 3s ease infinite",
+        }} />
       </header>
 
       {/* Mobile Content */}
@@ -960,9 +1181,7 @@ export default function HiScore() {
               </div>
             </div>
             {loading ? (
-              <div style={{ padding: 40, textAlign: "center", fontFamily: ff, color: K.textMuted }}>
-                <div style={{ animation: "pulse 1.5s infinite", fontSize: 14 }}>Loading...</div>
-              </div>
+              <div>{Array.from({length: 5}, (_, i) => <SkeletonRow key={i} i={i} />)}</div>
             ) : (
               <MobileTable leaders={leaders} onSelect={handleSelect} selected={selected} />
             )}
@@ -1011,8 +1230,10 @@ export default function HiScore() {
           entry={mobileProfile}
           trades={trades}
           onClose={() => setMobileProfile(null)}
+          onShare={setShareCard}
         />
       )}
+      {shareCard && <ShareCard entry={shareCard} onClose={() => setShareCard(null)} />}
     </div>
   );
 
@@ -1027,13 +1248,15 @@ export default function HiScore() {
       <header style={{
         display: "flex", alignItems: "center",
         padding: "0 20px", flexShrink: 0,
-        borderBottom: "1px solid " + K.borderLight,
+        borderBottom: "none",
         background: K.white,
         height: 44,
+        position: "relative",
       }}>
         <img src={LOGO_SVG} alt="" style={{
           width: 24, height: 24, borderRadius: 5,
         }} />
+        <span style={{ fontFamily: ff, fontSize: 14, fontWeight: 700, letterSpacing: "0.06em", marginLeft: 8, color: K.text }}>HISCORE</span>
 
         <div style={{ flex: 1 }} />
 
@@ -1059,6 +1282,12 @@ export default function HiScore() {
         </div>
 
         <div style={{ flex: 1 }} />
+        <div style={{
+          position: "absolute", bottom: 0, left: 0, right: 0, height: 2,
+          background: "linear-gradient(90deg, " + K.accent + ", #f87171, " + K.accent + ")",
+          backgroundSize: "200% 100%",
+          animation: "gradientShift 3s ease infinite",
+        }} />
       </header>
 
       {/* ===== BODY ===== */}
@@ -1090,9 +1319,7 @@ export default function HiScore() {
                   </div>
                 </div>
                 {loading ? (
-                  <div style={{ padding: 40, textAlign: "center", fontFamily: ff, color: K.textMuted }}>
-                    <div style={{ animation: "pulse 1.5s infinite", fontSize: 14 }}>Loading leaderboard...</div>
-                  </div>
+                  <div>{Array.from({length: 5}, (_, i) => <SkeletonDesktopRow key={i} i={i} />)}</div>
                 ) : leaders.length === 0 ? (
                   <div style={{ padding: 40, textAlign: "center", fontFamily: ff, color: K.textMuted, fontSize: 14 }}>No data yet. Sync trades first.</div>
                 ) : (
@@ -1241,7 +1468,7 @@ export default function HiScore() {
           display: "flex", flexDirection: "column",
           background: K.bg,
         }}>
-          <SideProfile entry={selected} trades={trades} />
+          <SideProfile entry={selected} trades={trades} onShare={setShareCard} />
           <div style={{ marginTop: "auto", padding: "12px 20px", borderTop: "1px solid " + K.borderLight, textAlign: "center" }}>
             <span onClick={() => window.open("https://wallet.xyz", "_blank")} style={{
               fontFamily: ff, fontSize: 11, color: K.textMuted, cursor: "pointer",
@@ -1250,6 +1477,7 @@ export default function HiScore() {
           </div>
         </div>
       </div>
+      {shareCard && <ShareCard entry={shareCard} onClose={() => setShareCard(null)} />}
     </div>
   );
 }
