@@ -304,46 +304,70 @@ function ShareCard({ entry, onClose }) {
     const W = 600, H = 340;
     c.width = W; c.height = H;
 
+    const rank = entry.rank || "—";
+
     // Background
     ctx.fillStyle = "#18181b";
     ctx.beginPath();
     ctx.roundRect(0, 0, W, H, 16);
     ctx.fill();
 
-    // Accent bar top
-    const grad = ctx.createLinearGradient(0, 0, W, 0);
-    grad.addColorStop(0, "#e5432e");
-    grad.addColorStop(1, "#f87171");
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, W, 4);
+    // Left sidebar — white
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.roundRect(0, 0, 100, H, [16, 0, 0, 16]);
+    ctx.fill();
+
+    // Base blue square logo in sidebar
+    ctx.fillStyle = "#0000FF";
+    ctx.fillRect(38, 30, 24, 24);
+
+    // Rank number — red gradient
+    const rankGrad = ctx.createLinearGradient(20, 100, 80, 160);
+    rankGrad.addColorStop(0, "#e5432e");
+    rankGrad.addColorStop(1, "#ff6b4a");
+    ctx.fillStyle = rankGrad;
+    ctx.font = "bold 44px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("#" + rank, 50, 150);
+
+    // RANK label
+    ctx.fillStyle = "#a1a1aa";
+    ctx.font = "bold 9px sans-serif";
+    ctx.letterSpacing = "2px";
+    ctx.fillText("RANK", 50, 170);
+    ctx.textAlign = "left";
+
+    // Right side content
+    const lx = 120;
 
     // Brand
     ctx.fillStyle = "#e5432e";
-    ctx.font = "bold 14px sans-serif";
-    ctx.fillText("HISCORE", 28, 36);
+    ctx.font = "bold 13px sans-serif";
+    ctx.fillText("HISCORE", lx, 36);
     ctx.fillStyle = "#71717a";
     ctx.font = "12px sans-serif";
-    ctx.fillText("hiscore.me", W - 100, 36);
+    ctx.fillText("hiscore.me", W - 108, 36);
 
     // Player name
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 28px sans-serif";
-    ctx.fillText(entry.wallet.label, 28, 85);
+    ctx.font = "bold 24px sans-serif";
+    ctx.fillText(entry.wallet.label, lx, 80);
 
     // Address
-    ctx.fillStyle = "#00c8d6";
+    ctx.fillStyle = "#22d3ee";
     ctx.font = "13px monospace";
-    ctx.fillText(shortAddr(entry.wallet.addr), 28, 108);
+    ctx.fillText(shortAddr(entry.wallet.addr), lx, 102);
 
     // PnL
     const pnlPos = entry.pnl >= 0;
-    ctx.fillStyle = pnlPos ? "#16a34a" : "#dc2626";
-    ctx.font = "bold 48px monospace";
-    ctx.fillText((pnlPos ? "+" : "") + fmt(entry.pnl), 28, 175);
+    ctx.fillStyle = pnlPos ? "#4ade80" : "#f87171";
+    ctx.font = "bold 44px monospace";
+    ctx.fillText((pnlPos ? "+" : "") + fmt(entry.pnl), lx, 165);
 
     ctx.fillStyle = "#71717a";
-    ctx.font = "11px sans-serif";
-    ctx.fillText("TOTAL PROFIT", 28, 195);
+    ctx.font = "bold 10px sans-serif";
+    ctx.fillText("TOTAL PROFIT", lx, 185);
 
     // Stats row
     const stats = [
@@ -352,23 +376,23 @@ function ShareCard({ entry, onClose }) {
       { l: "VOLUME", v: fmt(entry.vol) },
     ];
     stats.forEach((s, i) => {
-      const x = 28 + i * 180;
+      const x = lx + i * 160;
       ctx.fillStyle = "#a1a1aa";
       ctx.font = "10px sans-serif";
-      ctx.fillText(s.l, x, 240);
+      ctx.fillText(s.l, x, 230);
       ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 22px monospace";
-      ctx.fillText(s.v, x, 268);
+      ctx.font = "bold 20px monospace";
+      ctx.fillText(s.v, x, 255);
     });
 
-    // Footer
-    ctx.fillStyle = "#27272a";
-    ctx.fillRect(0, H - 44, W, 44);
+    // Footer bar
+    ctx.fillStyle = "#111113";
+    ctx.fillRect(100, H - 40, W - 100, 40);
     ctx.fillStyle = "#71717a";
     ctx.font = "11px sans-serif";
-    ctx.fillText("Base Chain \u2022 Powered by wallet.xyz", 28, H - 18);
+    ctx.fillText("Base Chain \u2022 Powered by wallet.xyz", lx, H - 15);
     ctx.fillStyle = "#e5432e";
-    ctx.fillText("Share on X \u2197", W - 100, H - 18);
+    ctx.fillText("Share on X \u2197", W - 108, H - 15);
   }, [entry]);
 
   const handleDownload = () => {
@@ -1398,6 +1422,7 @@ export default function HiScore() {
         ld.forEach((e, i) => {
           const prev = prevRanks.current[e.wallet.id];
           e.rankChange = prev !== undefined ? prev - i : 0;
+          e.rank = i + 1;
         });
         // Store current ranks for next comparison
         const newRanks = {};
