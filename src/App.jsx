@@ -1,4 +1,14 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+
+function useIsMobile(breakpoint = 768) {
+  const [mobile, setMobile] = useState(typeof window !== "undefined" ? window.innerWidth < breakpoint : false);
+  useEffect(() => {
+    const onResize = () => setMobile(window.innerWidth < breakpoint);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [breakpoint]);
+  return mobile;
+}
 
 /* ======================= PIXEL ART AVATARS ======================= */
 const AP = {
@@ -151,9 +161,11 @@ const STYLES = [
   "",
   "@keyframes fadeUp { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }",
   "@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }",
+  "@keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }",
+  "@keyframes fadeIn { from{opacity:0} to{opacity:1} }",
   "",
   "* { box-sizing:border-box; margin:0; padding:0; }",
-  "body { background:" + K.bg + "; overflow:hidden; }",
+  "body { background:" + K.bg + "; overflow:hidden; -webkit-tap-highlight-color: transparent; }",
   "::-webkit-scrollbar { width:6px; }",
   "::-webkit-scrollbar-track { background:transparent; }",
   "::-webkit-scrollbar-thumb { background:#d4d4d8; border-radius:3px; }",
@@ -514,6 +526,287 @@ function SideProfile({ entry, trades }) {
   );
 }
 
+/* ======================= MOBILE TABLE ======================= */
+function MobileTable({ leaders, onSelect, selected }) {
+  return (
+    <div>
+      <div style={{
+        display: "grid", gridTemplateColumns: "30px 1fr 80px",
+        padding: "10px 16px", gap: 8,
+        borderBottom: "1px solid " + K.borderLight,
+      }}>
+        {["#", "Trader", "Profit"].map((h, i) => (
+          <span key={h} style={{
+            fontFamily: ff, fontSize: 11, fontWeight: 500,
+            color: K.textMuted, textAlign: i > 1 ? "right" : "left",
+          }}>{h}</span>
+        ))}
+      </div>
+      {leaders.map((e, i) => {
+        const active = selected?.wallet?.id === e.wallet.id;
+        const isTop3 = i < 3;
+        const medals = [K.gold, K.silver, K.bronze];
+        const medalBgs = ["#fffbeb", "#fafafa", "#fff7ed"];
+        return (
+          <div key={i} onClick={() => onSelect(e)} style={{
+            display: "grid", gridTemplateColumns: "30px 1fr 80px",
+            alignItems: "center", padding: "14px 16px", gap: 8,
+            cursor: "pointer", borderBottom: "1px solid " + K.borderLight,
+            borderLeft: active ? "3px solid " + K.accent : "3px solid transparent",
+            background: active ? K.accentLight : isTop3 ? medalBgs[i] : "transparent",
+            animation: "fadeUp 0.3s ease " + (i * 0.03) + "s both",
+          }}>
+            <div style={{
+              width: 22, height: 22, borderRadius: 6, display: "flex",
+              alignItems: "center", justifyContent: "center",
+              background: isTop3 ? medals[i] : K.bg,
+              border: isTop3 ? "none" : "1px solid " + K.border,
+            }}>
+              <span style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, color: isTop3 ? "#fff" : K.textMuted }}>{i + 1}</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, overflow: "hidden" }}>
+              <div style={{
+                width: 36, height: 36, flexShrink: 0, borderRadius: 10,
+                border: "1px solid " + K.border, background: K.bg,
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <img src={AVATARS[e.wallet.avi || 0]} alt="" style={{ width: 26, height: 26, imageRendering: "pixelated" }} />
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{
+                  fontFamily: ff, fontSize: 14, fontWeight: 600, color: K.text,
+                  whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                }}>{e.wallet.label}</div>
+                <div style={{ fontFamily: mono, fontSize: 10, color: K.textMuted }}>{e.wr.toFixed(1)}% WR &middot; {e.trades} trades</div>
+              </div>
+            </div>
+            <span style={{
+              fontFamily: mono, fontSize: 13, fontWeight: 600, textAlign: "right",
+              color: e.pnl >= 0 ? K.profit : K.loss,
+            }}>{(e.pnl >= 0 ? "+" : "") + fmt(e.pnl)}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ======================= MOBILE PROFILE SHEET ======================= */
+function MobileProfileSheet({ entry, trades, onClose }) {
+  if (!entry) return null;
+  const w = entry.wallet;
+  const pnlPos = entry.pnl >= 0;
+  const myTrades = (trades || []).filter(t => t.wallet.id === w.id).slice(0, 5);
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 1000 }} onClick={onClose}>
+      <div style={{
+        position: "absolute", inset: 0, background: "rgba(0,0,0,0.4)",
+        animation: "fadeIn 0.2s ease",
+      }} />
+      <div onClick={(e) => e.stopPropagation()} style={{
+        position: "absolute", bottom: 0, left: 0, right: 0,
+        background: K.bg, borderRadius: "20px 20px 0 0",
+        maxHeight: "85vh", overflowY: "auto",
+        animation: "slideUp 0.3s ease",
+        paddingBottom: "env(safe-area-inset-bottom, 20px)",
+      }}>
+        {/* Drag handle */}
+        <div style={{ display: "flex", justifyContent: "center", padding: "10px 0 4px" }}>
+          <div style={{ width: 36, height: 4, borderRadius: 2, background: K.border }} />
+        </div>
+
+        <div style={{ padding: "8px 20px 20px" }}>
+          {/* Avatar + Name */}
+          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
+            <div style={{
+              width: 56, height: 56, borderRadius: 14,
+              background: "linear-gradient(135deg, " + K.accent + ", #f87171)",
+              padding: 2, flexShrink: 0,
+            }}>
+              <div style={{
+                width: "100%", height: "100%", borderRadius: 12, background: K.white,
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <img src={AVATARS[w.avi || 0]} alt="" style={{ width: 36, height: 36, imageRendering: "pixelated" }} />
+              </div>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: ff, fontSize: 18, fontWeight: 700, color: K.text }}>{w.label}</div>
+              <div onClick={() => window.open("https://basescan.org/address/" + w.addr, "_blank")} style={{ fontFamily: mono, fontSize: 12, color: K.cyan, marginTop: 2 }}>{shortAddr(w.addr)}</div>
+            </div>
+            <button onClick={onClose} style={{
+              width: 32, height: 32, borderRadius: 8, border: "1px solid " + K.border,
+              background: K.white, cursor: "pointer", fontFamily: ff, fontSize: 16, color: K.textMuted,
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>&times;</button>
+          </div>
+
+          {/* PnL */}
+          <Tile style={{ padding: 16, textAlign: "center", marginBottom: 10, position: "relative", overflow: "hidden" }}>
+            <div style={{
+              position: "absolute", top: 0, left: 0, right: 0, height: 3, borderRadius: "14px 14px 0 0",
+              background: pnlPos ? K.profit : K.loss, opacity: 0.8,
+            }} />
+            <div style={{ fontFamily: ff, fontSize: 11, color: K.textMuted, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em" }}>Total Profit</div>
+            <div style={{ fontFamily: mono, fontSize: 30, fontWeight: 700, marginTop: 4, color: pnlPos ? K.profit : K.loss }}>
+              {(pnlPos ? "+" : "") + fmt(entry.pnl)}
+            </div>
+          </Tile>
+
+          {/* Stats row */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 10 }}>
+            {[
+              { l: "Win Rate", v: entry.wr + "%", c: entry.wr >= 55 ? K.profit : K.text },
+              { l: "Trades", v: entry.trades, c: K.text },
+              { l: "Volume", v: fmt(entry.vol), c: K.accent },
+            ].map((s, i) => (
+              <Tile key={i} hover={false} style={{ padding: "10px 6px", textAlign: "center" }}>
+                <div style={{ fontFamily: ff, fontSize: 9, color: K.textMuted, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.04em" }}>{s.l}</div>
+                <div style={{ fontFamily: mono, fontSize: 16, color: s.c, fontWeight: 700, marginTop: 2 }}>{s.v}</div>
+              </Tile>
+            ))}
+          </div>
+
+          {/* Holdings */}
+          {entry.holdings && entry.holdings.length > 0 && (
+            <Tile hover={false} style={{ marginBottom: 10, overflow: "hidden" }}>
+              <div style={{ padding: "10px 14px", borderBottom: "1px solid " + K.borderLight }}>
+                <span style={{ fontFamily: ff, fontSize: 13, fontWeight: 600, color: K.text }}>Holdings</span>
+              </div>
+              {entry.holdings.map((h, i) => {
+                const pnl = h.realized_pnl_usd || 0;
+                return (
+                  <div key={i} style={{
+                    display: "flex", alignItems: "center", gap: 10, padding: "9px 14px",
+                    borderBottom: i < entry.holdings.length - 1 ? "1px solid " + K.borderLight : "none",
+                  }}>
+                    <div style={{
+                      width: 26, height: 26, borderRadius: 7, background: K.accentLight,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontFamily: ff, fontSize: 9, fontWeight: 700, color: K.accent,
+                    }}>{(h.token_symbol || "??").slice(0,2)}</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontFamily: ff, fontSize: 13, fontWeight: 600, color: K.text }}>{h.token_symbol || "UNKNOWN"}</div>
+                      <div style={{ fontFamily: mono, fontSize: 10, color: K.textMuted }}>{fmt(h.est_value_usd)} cost</div>
+                    </div>
+                    <span style={{
+                      fontFamily: mono, fontSize: 11, fontWeight: 600,
+                      color: pnl >= 0 ? K.profit : K.loss,
+                      background: pnl >= 0 ? K.profitBg : K.lossBg,
+                      padding: "2px 6px", borderRadius: 5,
+                    }}>{(pnl >= 0 ? "+" : "") + fmt(pnl)}</span>
+                  </div>
+                );
+              })}
+            </Tile>
+          )}
+
+          {/* Recent trades */}
+          {myTrades.length > 0 && (
+            <Tile hover={false} style={{ marginBottom: 10, overflow: "hidden" }}>
+              <div style={{ padding: "10px 14px", borderBottom: "1px solid " + K.borderLight }}>
+                <span style={{ fontFamily: ff, fontSize: 13, fontWeight: 600, color: K.text }}>Recent Trades</span>
+              </div>
+              {myTrades.map((t, i) => (
+                <div key={i} style={{
+                  display: "flex", alignItems: "center", gap: 8, padding: "8px 14px",
+                  borderBottom: "1px solid " + K.borderLight, fontSize: 12, fontFamily: ff,
+                }}>
+                  <span style={{ color: K.cyan, fontFamily: mono, fontSize: 10, width: 28, opacity: 0.7 }}>{ago(t.traded_at).replace(" ago","")}</span>
+                  <span style={{
+                    fontFamily: ff, fontSize: 11, fontWeight: 600,
+                    color: t.direction === "buy" ? K.profit : K.loss,
+                    background: t.direction === "buy" ? K.profitBg : K.lossBg,
+                    padding: "1px 6px", borderRadius: 4,
+                  }}>{t.direction === "buy" ? "Buy" : "Sell"}</span>
+                  <span style={{ color: K.text, fontFamily: mono, fontWeight: 500 }}>{fmt(t.usd_amount)}</span>
+                  <span style={{ color: K.accent, fontWeight: 600, marginLeft: "auto" }}>{t.token_symbol}</span>
+                </div>
+              ))}
+            </Tile>
+          )}
+
+          {/* Action buttons */}
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={() => window.open("https://wallet.xyz/copy/" + w.addr, "_blank")} style={{
+              fontFamily: ff, fontSize: 13, fontWeight: 600,
+              color: K.white, background: K.accent,
+              border: "none", borderRadius: 10,
+              padding: "12px 0", cursor: "pointer", flex: 1,
+            }}>{"\u2197 Copy Trader"}</button>
+            <button onClick={() => window.open("https://basescan.org/address/" + w.addr, "_blank")} style={{
+              fontFamily: ff, fontSize: 13, fontWeight: 500,
+              color: K.textSec, background: K.white,
+              border: "1px solid " + K.border, borderRadius: 10,
+              padding: "12px 0", cursor: "pointer", flex: 1,
+            }}>Basescan</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ======================= MOBILE LIVE FEED ======================= */
+function MobileLiveFeed({ trades, liveMin, setLiveMin }) {
+  return (
+    <div>
+      <div style={{
+        padding: "12px 16px", display: "flex", alignItems: "center",
+        justifyContent: "space-between", borderBottom: "1px solid " + K.borderLight,
+      }}>
+        <span style={{
+          fontFamily: ff, fontSize: 10, fontWeight: 600,
+          color: K.profit, background: K.profitBg,
+          padding: "2px 8px", borderRadius: 4,
+          border: "1px solid rgba(22,163,74,0.15)",
+        }}>LIVE</span>
+        <div style={{ display: "flex", gap: 3 }}>
+          {[{label:"All",val:0},{label:"$100+",val:100},{label:"$500+",val:500},{label:"$1K+",val:1000}].map((f) => (
+            <button key={f.val} onClick={() => setLiveMin(f.val)} style={{
+              fontFamily: ff, fontSize: 10, fontWeight: 500,
+              color: liveMin === f.val ? K.text : K.textMuted,
+              background: liveMin === f.val ? K.bg : "transparent",
+              border: "1px solid " + (liveMin === f.val ? K.border : "transparent"),
+              borderRadius: 6, padding: "3px 8px", cursor: "pointer",
+            }}>{f.label}</button>
+          ))}
+        </div>
+      </div>
+      {trades.filter(t => (t.usd_amount || 0) >= liveMin).map((t, i) => {
+        const buy = t.direction === "buy";
+        return (
+          <div key={i} style={{
+            display: "grid", gridTemplateColumns: "50px 1fr 1fr 70px",
+            alignItems: "center", padding: "10px 16px", gap: 8,
+            borderBottom: "1px solid " + K.borderLight, fontSize: 12,
+          }}>
+            <span style={{ fontFamily: mono, fontSize: 10, color: K.cyan }}>{ago(t.traded_at)}</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <img src={AVATARS[Math.abs(t.wallet.avi) % 10]} alt="" style={{ width: 24, height: 24, imageRendering: "pixelated", borderRadius: 6 }} />
+              <span style={{ fontFamily: ff, fontSize: 12, fontWeight: 500, color: K.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.wallet.label}</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <span style={{
+                fontFamily: ff, fontSize: 9, fontWeight: 600,
+                color: buy ? K.profit : K.loss,
+                background: buy ? K.profitBg : K.lossBg,
+                padding: "1px 4px", borderRadius: 3,
+              }}>{buy ? "B" : "S"}</span>
+              <span style={{ fontFamily: ff, fontSize: 12, fontWeight: 500, color: K.accent }}>{t.token_symbol}</span>
+            </div>
+            <span style={{
+              fontFamily: mono, fontSize: 12, fontWeight: 600, textAlign: "right",
+              color: buy ? K.profit : K.loss,
+            }}>{t.usd_amount > 0 ? fmt(t.usd_amount) : (buy ? "BUY" : "SELL")}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 /* ======================= SEARCH ======================= */
 function SearchPanel({ onSelect, leaders }) {
   const [q, setQ] = useState("");
@@ -578,8 +871,10 @@ function SearchPanel({ onSelect, leaders }) {
 
 /* ======================= MAIN ======================= */
 export default function HiScore() {
+  const isMobile = useIsMobile();
   const [tab, setTab] = useState("ranks");
   const [selected, setSelected] = useState(null);
+  const [mobileProfile, setMobileProfile] = useState(null);
   const [leaders, setLeaders] = useState([]);
   const [trades, setTrades] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -588,6 +883,11 @@ export default function HiScore() {
   const [feedFilter, setFeedFilter] = useState("all");
   const feedRef = useRef(null);
   const firstLoad = useRef(true);
+
+  const handleSelect = useCallback((e) => {
+    setSelected(e);
+    if (isMobile) setMobileProfile(e);
+  }, [isMobile]);
 
   useEffect(() => {
     async function fetchData() {
@@ -616,7 +916,105 @@ export default function HiScore() {
     if (feedRef.current) feedRef.current.scrollTop = feedRef.current.scrollHeight;
   }, [trades]);
 
-  return (
+  /* ===== MOBILE LAYOUT ===== */
+  if (isMobile) return (
+    <div style={{
+      height: "100vh", display: "flex", flexDirection: "column",
+      fontFamily: ff, color: K.text, background: K.bg,
+    }}>
+      <style>{STYLES}</style>
+
+      {/* Mobile Header */}
+      <header style={{
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: "0 16px", flexShrink: 0,
+        borderBottom: "1px solid " + K.borderLight,
+        background: K.white, height: 48,
+      }}>
+        <img src={"data:image/png;base64,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"} alt="" style={{ width: 22, height: 22, borderRadius: 5 }} />
+        <span style={{ fontFamily: ff, fontSize: 16, fontWeight: 700, letterSpacing: "0.06em", marginLeft: 8 }}>HISCORE</span>
+      </header>
+
+      {/* Mobile Content */}
+      <div style={{ flex: 1, overflowY: "auto", background: K.white }}>
+        {tab === "ranks" && (
+          <div>
+            <div style={{
+              padding: "14px 16px", display: "flex", flexDirection: "column",
+              alignItems: "center", borderBottom: "1px solid " + K.borderLight,
+            }}>
+              <p style={{ fontSize: 12, color: K.textMuted, marginBottom: 8 }}>Top traders &bull; Base Chain</p>
+              <div style={{ display: "flex", gap: 4 }}>
+                {[{id:"all",label:"Overall"},{id:"24h",label:"24h"},{id:"7d",label:"7d"},{id:"30d",label:"30d"}].map((p) => (
+                  <button key={p.id} onClick={() => { setPeriod(p.id); setLoading(true); }} style={{
+                    fontFamily: ff, fontSize: 12, fontWeight: 500,
+                    color: period === p.id ? K.text : K.textMuted,
+                    background: period === p.id ? K.bg : "transparent",
+                    border: "1px solid " + (period === p.id ? K.border : "transparent"),
+                    borderRadius: 8, padding: "5px 14px", cursor: "pointer",
+                    boxShadow: period === p.id ? cardShadow : "none",
+                  }}>{p.label}</button>
+                ))}
+              </div>
+            </div>
+            {loading ? (
+              <div style={{ padding: 40, textAlign: "center", fontFamily: ff, color: K.textMuted }}>
+                <div style={{ animation: "pulse 1.5s infinite", fontSize: 14 }}>Loading...</div>
+              </div>
+            ) : (
+              <MobileTable leaders={leaders} onSelect={handleSelect} selected={selected} />
+            )}
+          </div>
+        )}
+        {tab === "live" && <MobileLiveFeed trades={trades} liveMin={liveMin} setLiveMin={setLiveMin} />}
+        {tab === "search" && (
+          <div>
+            <div style={{ padding: "14px 16px", borderBottom: "1px solid " + K.borderLight }}>
+              <h2 style={{ fontSize: 18, fontWeight: 700, color: K.text }}>Player Lookup</h2>
+            </div>
+            <SearchPanel onSelect={e => { handleSelect(e); setTab("ranks"); }} leaders={leaders} />
+          </div>
+        )}
+      </div>
+
+      {/* Mobile Bottom Nav */}
+      <nav style={{
+        display: "flex", flexShrink: 0,
+        borderTop: "1px solid " + K.border,
+        background: K.white,
+        paddingBottom: "env(safe-area-inset-bottom, 0px)",
+      }}>
+        {[
+          { id: "ranks", label: "Ranks", icon: "\u2606" },
+          { id: "live", label: "Live", icon: "\u25CF" },
+          { id: "search", label: "Search", icon: "\u2315" },
+        ].map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)} style={{
+            flex: 1, display: "flex", flexDirection: "column",
+            alignItems: "center", justifyContent: "center",
+            padding: "10px 0 8px", gap: 2, border: "none", cursor: "pointer",
+            background: "transparent",
+            color: tab === t.id ? K.accent : K.textMuted,
+            fontFamily: ff,
+          }}>
+            <span style={{ fontSize: 18, lineHeight: 1 }}>{t.icon}</span>
+            <span style={{ fontSize: 10, fontWeight: 600 }}>{t.label}</span>
+          </button>
+        ))}
+      </nav>
+
+      {/* Mobile Profile Sheet */}
+      {mobileProfile && (
+        <MobileProfileSheet
+          entry={mobileProfile}
+          trades={trades}
+          onClose={() => setMobileProfile(null)}
+        />
+      )}
+    </div>
+  );
+
+  /* ===== DESKTOP LAYOUT ===== */  return (
     <div style={{
       height: "100vh", display: "flex", flexDirection: "column",
       fontFamily: ff, color: K.text, background: K.bg,
@@ -696,7 +1094,7 @@ export default function HiScore() {
                 ) : leaders.length === 0 ? (
                   <div style={{ padding: 40, textAlign: "center", fontFamily: ff, color: K.textMuted, fontSize: 14 }}>No data yet. Sync trades first.</div>
                 ) : (
-                  <HiscoresTable onSelect={setSelected} selected={selected} leaders={leaders} />
+                  <HiscoresTable onSelect={handleSelect} selected={selected} leaders={leaders} />
                 )}
               </div>
             )}
