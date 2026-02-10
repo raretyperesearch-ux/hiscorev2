@@ -306,11 +306,11 @@ function HiscoresTable({ onSelect, selected, leaders }) {
 
             {/* Copy */}
             <button onClick={(ev) => { ev.stopPropagation(); window.open("https://wallet.xyz/copy/" + e.wallet.addr, "_blank"); }} style={{
-              fontFamily: ff, fontSize: 10, fontWeight: 600,
+              fontFamily: mono, fontSize: 9, fontWeight: 700,
               color: K.white, background: K.accent,
-              border: "none", borderRadius: 4,
-              padding: "3px 8px", cursor: "pointer",
-              transition: "opacity 0.15s",
+              border: "none", borderRadius: 5,
+              padding: "4px 6px", cursor: "pointer",
+              transition: "opacity 0.15s", lineHeight: 1,
             }} onMouseEnter={(ev) => ev.currentTarget.style.opacity = "0.8"} onMouseLeave={(ev) => ev.currentTarget.style.opacity = "1"}>+Copy</button>
           </div>
         );
