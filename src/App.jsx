@@ -1667,7 +1667,7 @@ export default function HiScore() {
     <>
     {showSplash && <FireLoadingScreen onFinished={() => setShowSplash(false)} />}
     <div style={{
-      height: "100vh", display: "flex", flexDirection: "column",
+      height: "100dvh", display: "flex", flexDirection: "column",
       fontFamily: ff, color: K.text, background: K.bg,
     }}>
       <style>{getStyles()}</style>
@@ -1707,7 +1707,7 @@ export default function HiScore() {
               padding: "14px 16px", display: "flex", flexDirection: "column",
               alignItems: "center", borderBottom: "1px solid " + K.borderLight,
             }}>
-              <p style={{ fontSize: 14, fontWeight: 600, color: K.text, marginBottom: 8, margin: "0 0 8px 0" }}>Top traders ranked by all-time profit on Base</p>
+              <p style={{ fontSize: 13, fontWeight: 600, color: K.text, margin: "0 0 10px 0", textAlign: "center", letterSpacing: "-0.01em", lineHeight: 1.3 }}>Top traders ranked by all-time profit on Base</p>
               <div style={{ display: "flex", gap: 4 }}>
                 {[{id:"all",label:"Overall"},{id:"24h",label:"24h"},{id:"7d",label:"7d"},{id:"30d",label:"30d"}].map((p) => (
                   <button key={p.id} onClick={() => { setPeriod(p.id); setLoading(true); }} style={{
