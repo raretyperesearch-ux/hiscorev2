@@ -1,5 +1,182 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
+/* ======================= FIRE LOADING SCREEN ======================= */
+function FireLoadingScreen({ onFinished }) {
+  const [fadeOut, setFadeOut] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const iv = setInterval(() => {
+      setProgress(p => {
+        if (p >= 100) { clearInterval(iv); return 100; }
+        return p + Math.random() * 12 + 3;
+      });
+    }, 120);
+    return () => clearInterval(iv);
+  }, []);
+
+  useEffect(() => {
+    if (progress >= 100) {
+      setTimeout(() => setFadeOut(true), 300);
+      setTimeout(() => onFinished(), 800);
+    }
+  }, [progress, onFinished]);
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 9999,
+      background: "#0a0a0a",
+      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+      opacity: fadeOut ? 0 : 1,
+      transition: "opacity 0.5s ease",
+    }}>
+      <style>{`
+        @keyframes fireFloat {
+          0% { transform: translateY(0) scale(1); opacity: 1; }
+          50% { transform: translateY(-40px) scale(1.2); opacity: 0.8; }
+          100% { transform: translateY(-80px) scale(0.3); opacity: 0; }
+        }
+        @keyframes fireGlow {
+          0%, 100% { filter: blur(0px) brightness(1); }
+          50% { filter: blur(1px) brightness(1.3); }
+        }
+        @keyframes loadPulse {
+          0%, 100% { opacity: 0.6; }
+          50% { opacity: 1; }
+        }
+        @keyframes logoReveal {
+          0% { transform: scale(0.8); opacity: 0; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes textReveal {
+          0% { transform: translateY(12px); opacity: 0; }
+          100% { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes embers {
+          0% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 1; }
+          25% { transform: translateY(-30px) translateX(8px) rotate(90deg); opacity: 0.9; }
+          50% { transform: translateY(-60px) translateX(-5px) rotate(180deg); opacity: 0.6; }
+          75% { transform: translateY(-90px) translateX(12px) rotate(270deg); opacity: 0.3; }
+          100% { transform: translateY(-120px) translateX(-2px) rotate(360deg); opacity: 0; }
+        }
+        @keyframes barGlow {
+          0%, 100% { box-shadow: 0 0 8px rgba(229,67,46,0.3); }
+          50% { box-shadow: 0 0 20px rgba(229,67,46,0.6), 0 0 40px rgba(255,120,50,0.2); }
+        }
+      `}</style>
+
+      {/* Fire particles */}
+      {Array.from({ length: 20 }, (_, i) => {
+        const left = 35 + Math.random() * 30;
+        const delay = Math.random() * 2;
+        const dur = 1.2 + Math.random() * 1.5;
+        const size = 3 + Math.random() * 6;
+        const colors = ["#e5432e", "#ff6b35", "#ff9a3c", "#ffd93d", "#ff4444"];
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        return (
+          <div key={i} style={{
+            position: "absolute",
+            left: left + "%",
+            bottom: "38%",
+            width: size,
+            height: size,
+            borderRadius: "50%",
+            background: color,
+            animation: `fireFloat ${dur}s ease-out ${delay}s infinite`,
+            boxShadow: `0 0 ${size}px ${color}`,
+          }} />
+        );
+      })}
+
+      {/* Ember sparks */}
+      {Array.from({ length: 12 }, (_, i) => {
+        const left = 40 + Math.random() * 20;
+        const delay = Math.random() * 3;
+        const dur = 2 + Math.random() * 2;
+        return (
+          <div key={"e" + i} style={{
+            position: "absolute",
+            left: left + "%",
+            bottom: "42%",
+            width: 2,
+            height: 2,
+            borderRadius: "50%",
+            background: "#ffd93d",
+            animation: `embers ${dur}s ease-out ${delay}s infinite`,
+            boxShadow: "0 0 3px #ff9a3c",
+          }} />
+        );
+      })}
+
+      {/* Logo + text */}
+      <div style={{ position: "relative", zIndex: 2, textAlign: "center" }}>
+        {/* Base blue square logo */}
+        <div style={{
+          width: 64, height: 64, borderRadius: 14,
+          background: "#0052FF",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          margin: "0 auto 20px",
+          animation: "logoReveal 0.6s ease-out forwards",
+          boxShadow: "0 0 30px rgba(0,82,255,0.3), 0 8px 32px rgba(0,0,0,0.4)",
+        }}>
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <circle cx="16" cy="16" r="12" fill="white"/>
+            <circle cx="16" cy="16" r="6" fill="#0052FF"/>
+          </svg>
+        </div>
+
+        {/* HISCORE text */}
+        <div style={{
+          fontFamily: "'Space Grotesk', 'Inter', sans-serif",
+          fontSize: 28, fontWeight: 800, letterSpacing: "0.12em",
+          color: "#ffffff",
+          animation: "textReveal 0.5s ease-out 0.2s both",
+          textShadow: "0 0 20px rgba(229,67,46,0.4)",
+        }}>HISCORE</div>
+
+        {/* Subtitle */}
+        <div style={{
+          fontFamily: "'Space Grotesk', 'Inter', sans-serif",
+          fontSize: 13, fontWeight: 400, color: "rgba(255,255,255,0.4)",
+          marginTop: 6, letterSpacing: "0.04em",
+          animation: "textReveal 0.5s ease-out 0.4s both",
+        }}>Base Chain Trader Leaderboard</div>
+
+        {/* Progress bar */}
+        <div style={{
+          width: 200, height: 3, background: "rgba(255,255,255,0.08)",
+          borderRadius: 4, margin: "28px auto 0", overflow: "hidden",
+          animation: "barGlow 2s ease infinite",
+        }}>
+          <div style={{
+            height: "100%",
+            width: Math.min(progress, 100) + "%",
+            background: "linear-gradient(90deg, #e5432e, #ff6b35, #ffd93d)",
+            borderRadius: 4,
+            transition: "width 0.15s ease",
+            boxShadow: "0 0 8px rgba(229,67,46,0.5)",
+          }} />
+        </div>
+
+        {/* Loading text */}
+        <div style={{
+          fontFamily: "'Space Grotesk', 'Inter', sans-serif",
+          fontSize: 11, color: "rgba(255,255,255,0.25)",
+          marginTop: 12, letterSpacing: "0.08em",
+          animation: "loadPulse 1.5s ease infinite",
+        }}>LOADING LEADERBOARD</div>
+      </div>
+
+      {/* Bottom glow */}
+      <div style={{
+        position: "absolute", bottom: 0, left: "10%", right: "10%", height: 120,
+        background: "radial-gradient(ellipse at center bottom, rgba(229,67,46,0.08) 0%, transparent 70%)",
+        pointerEvents: "none",
+      }} />
+    </div>
+  );
+}
+
 function useIsMobile(breakpoint = 768) {
   const [mobile, setMobile] = useState(typeof window !== "undefined" ? window.innerWidth < breakpoint : false);
   useEffect(() => {
@@ -1373,6 +1550,7 @@ export default function HiScore() {
   const [leaders, setLeaders] = useState([]);
   const [trades, setTrades] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showSplash, setShowSplash] = useState(true);
   const [period, setPeriod] = useState("all");
   const [liveMin, setLiveMin] = useState(0);
   const [feedFilter, setFeedFilter] = useState("all");
@@ -1443,6 +1621,8 @@ export default function HiScore() {
 
   /* ===== MOBILE LAYOUT ===== */
   if (isMobile) return (
+    <>
+    {showSplash && <FireLoadingScreen onFinished={() => setShowSplash(false)} />}
     <div style={{
       height: "100vh", display: "flex", flexDirection: "column",
       fontFamily: ff, color: K.text, background: K.bg,
@@ -1563,9 +1743,12 @@ export default function HiScore() {
       {shareCard && <ShareCard entry={shareCard} onClose={() => setShareCard(null)} />}
       {showSubmit && <SubmitWalletModal onClose={() => setShowSubmit(false)} />}
     </div>
+    </>
   );
 
   /* ===== DESKTOP LAYOUT ===== */  return (
+    <>
+    {showSplash && <FireLoadingScreen onFinished={() => setShowSplash(false)} />}
     <div style={{
       height: "100vh", display: "flex", flexDirection: "column",
       fontFamily: ff, color: K.text, background: K.bg,
@@ -1814,5 +1997,6 @@ export default function HiScore() {
       {shareCard && <ShareCard entry={shareCard} onClose={() => setShareCard(null)} />}
       {showSubmit && <SubmitWalletModal onClose={() => setShowSubmit(false)} />}
     </div>
+    </>
   );
 }
