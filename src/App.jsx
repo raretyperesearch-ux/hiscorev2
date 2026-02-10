@@ -1311,7 +1311,24 @@ function MobileProfileSheet({ entry, trades, onClose, onShare }) {
   if (!entry) return null;
   const w = entry.wallet;
   const pnlPos = entry.pnl >= 0;
-  const myTrades = (trades || []).filter(t => t.wallet.id === w.id).slice(0, 5);
+  const myTrades = (trades || []).filter(t => t.wallet.id === w.id).slice(0, 20);
+  const [tab, setTab] = useState(0); // 0=overview, 1=trades, 2=holdings
+  const touchStart = useRef(null);
+  const touchEnd = useRef(null);
+
+  const tabs = ["Overview", "Trades", "Holdings"];
+
+  const onTouchStart = (e) => { touchStart.current = e.targetTouches[0].clientX; touchEnd.current = null; };
+  const onTouchMove = (e) => { touchEnd.current = e.targetTouches[0].clientX; };
+  const onTouchEnd = () => {
+    if (!touchStart.current || !touchEnd.current) return;
+    const dist = touchStart.current - touchEnd.current;
+    if (Math.abs(dist) > 50) {
+      if (dist > 0 && tab < 2) setTab(t => t + 1); // swipe left → next
+      if (dist < 0 && tab > 0) setTab(t => t - 1); // swipe right → prev
+    }
+    touchStart.current = null; touchEnd.current = null;
+  };
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 1000 }} onClick={onClose}>
@@ -1357,89 +1374,123 @@ function MobileProfileSheet({ entry, trades, onClose, onShare }) {
             }}>&times;</button>
           </div>
 
-          {/* PnL */}
-          <Tile style={{ padding: 16, textAlign: "center", marginBottom: 10, position: "relative", overflow: "hidden" }}>
-            <div style={{
-              position: "absolute", top: 0, left: 0, right: 0, height: 3, borderRadius: "14px 14px 0 0",
-              background: pnlPos ? K.profit : K.loss, opacity: 0.8,
-            }} />
-            <div style={{ fontFamily: ff, fontSize: 11, color: K.textMuted, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em" }}>Total Profit</div>
-            <div style={{ fontFamily: mono, fontSize: 30, fontWeight: 700, marginTop: 4, color: pnlPos ? K.profit : K.loss }}>
-              {(pnlPos ? "+" : "") + fmt(entry.pnl)}
-            </div>
-          </Tile>
-
-          {/* Stats row */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 10 }}>
-            {[
-              { l: "Win Rate", v: entry.wr + "%", c: entry.wr >= 55 ? K.profit : K.text },
-              { l: "Trades", v: entry.trades, c: K.text },
-              { l: "Balance", v: fmt(entry.balance || 0), c: K.accent },
-            ].map((s, i) => (
-              <Tile key={i} hover={false} style={{ padding: "10px 6px", textAlign: "center" }}>
-                <div style={{ fontFamily: ff, fontSize: 9, color: K.textMuted, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.04em" }}>{s.l}</div>
-                <div style={{ fontFamily: mono, fontSize: 16, color: s.c, fontWeight: 700, marginTop: 2 }}>{s.v}</div>
-              </Tile>
+          {/* Tab bar */}
+          <div style={{ display: "flex", gap: 0, marginBottom: 14, borderBottom: "1px solid " + K.borderLight }}>
+            {tabs.map((t, i) => (
+              <button key={t} onClick={() => setTab(i)} style={{
+                flex: 1, padding: "8px 0", fontFamily: ff, fontSize: 12, fontWeight: 600,
+                color: tab === i ? K.accent : K.textMuted,
+                background: "transparent", border: "none", cursor: "pointer",
+                borderBottom: tab === i ? "2px solid " + K.accent : "2px solid transparent",
+                transition: "all 0.2s ease",
+              }}>{t}{i === 1 ? ` (${myTrades.length})` : i === 2 ? ` (${(entry.holdings || []).length})` : ""}</button>
             ))}
           </div>
 
-          {/* Holdings */}
-          {entry.holdings && entry.holdings.length > 0 && (
-            <Tile hover={false} style={{ marginBottom: 10, overflow: "hidden" }}>
-              <div style={{ padding: "10px 14px", borderBottom: "1px solid " + K.borderLight }}>
-                <span style={{ fontFamily: ff, fontSize: 13, fontWeight: 600, color: K.text }}>Holdings</span>
-              </div>
-              {entry.holdings.map((h, i) => {
-                const pnl = h.realized_pnl_usd || 0;
-                return (
-                  <div key={i} style={{
-                    display: "flex", alignItems: "center", gap: 10, padding: "9px 14px",
-                    borderBottom: i < entry.holdings.length - 1 ? "1px solid " + K.borderLight : "none",
-                  }}>
-                    <TokenIcon address={h.token_address} symbol={h.token_symbol} size={26} />
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontFamily: ff, fontSize: 13, fontWeight: 600, color: K.text }}>{h.token_symbol || "UNKNOWN"}</div>
-                      <div style={{ fontFamily: mono, fontSize: 10, color: K.textMuted }}>{fmt(h.est_value_usd)} cost</div>
-                    </div>
-                    <span style={{
-                      fontFamily: mono, fontSize: 11, fontWeight: 600,
-                      color: pnl >= 0 ? K.profit : K.loss,
-                      background: pnl >= 0 ? K.profitBg : K.lossBg,
-                      padding: "2px 6px", borderRadius: 5,
-                    }}>{(pnl >= 0 ? "+" : "") + fmt(pnl)}</span>
-                  </div>
-                );
-              })}
-            </Tile>
-          )}
+          {/* Swipeable content */}
+          <div onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} style={{ minHeight: 180 }}>
 
-          {/* Recent trades */}
-          {myTrades.length > 0 && (
-            <Tile hover={false} style={{ marginBottom: 10, overflow: "hidden" }}>
-              <div style={{ padding: "10px 14px", borderBottom: "1px solid " + K.borderLight }}>
-                <span style={{ fontFamily: ff, fontSize: 13, fontWeight: 600, color: K.text }}>Recent Trades</span>
-              </div>
-              {myTrades.map((t, i) => (
-                <div key={i} style={{
-                  display: "flex", alignItems: "center", gap: 8, padding: "8px 14px",
-                  borderBottom: "1px solid " + K.borderLight, fontSize: 12, fontFamily: ff,
-                }}>
-                  <span style={{ color: K.cyan, fontFamily: mono, fontSize: 10, width: 28, opacity: 0.7 }}>{ago(t.traded_at).replace(" ago","")}</span>
-                  <span style={{
-                    fontFamily: ff, fontSize: 11, fontWeight: 600,
-                    color: t.direction === "buy" ? K.profit : K.loss,
-                    background: t.direction === "buy" ? K.profitBg : K.lossBg,
-                    padding: "1px 6px", borderRadius: 4,
-                  }}>{t.direction === "buy" ? "Buy" : "Sell"}</span>
-                  <span style={{ color: K.text, fontFamily: mono, fontWeight: 500 }}>{fmt(t.usd_amount)}</span>
-                  <span onClick={() => window.open(WALLET_XYZ_REF, "_blank")} style={{ color: K.accent, fontWeight: 600, marginLeft: "auto", cursor: "pointer" }}>{t.token_symbol}</span>
+            {/* TAB 0: Overview */}
+            {tab === 0 && (
+              <>
+                {/* PnL */}
+                <Tile style={{ padding: 16, textAlign: "center", marginBottom: 10, position: "relative", overflow: "hidden" }}>
+                  <div style={{
+                    position: "absolute", top: 0, left: 0, right: 0, height: 3, borderRadius: "14px 14px 0 0",
+                    background: pnlPos ? K.profit : K.loss, opacity: 0.8,
+                  }} />
+                  <div style={{ fontFamily: ff, fontSize: 11, color: K.textMuted, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em" }}>Total Profit</div>
+                  <div style={{ fontFamily: mono, fontSize: 30, fontWeight: 700, marginTop: 4, color: pnlPos ? K.profit : K.loss }}>
+                    {(pnlPos ? "+" : "") + fmt(entry.pnl)}
+                  </div>
+                </Tile>
+
+                {/* Stats row */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 10 }}>
+                  {[
+                    { l: "Win Rate", v: entry.wr + "%", c: entry.wr >= 55 ? K.profit : K.text },
+                    { l: "Trades", v: entry.trades, c: K.text },
+                    { l: "Balance", v: fmt(entry.balance || 0), c: K.accent },
+                  ].map((s, i) => (
+                    <Tile key={i} hover={false} style={{ padding: "10px 6px", textAlign: "center" }}>
+                      <div style={{ fontFamily: ff, fontSize: 9, color: K.textMuted, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.04em" }}>{s.l}</div>
+                      <div style={{ fontFamily: mono, fontSize: 16, color: s.c, fontWeight: 700, marginTop: 2 }}>{s.v}</div>
+                    </Tile>
+                  ))}
                 </div>
-              ))}
-            </Tile>
-          )}
+
+                {/* Swipe hint */}
+                <div style={{ textAlign: "center", fontFamily: ff, fontSize: 11, color: K.textMuted, opacity: 0.5, marginBottom: 10 }}>
+                  Swipe for trades & holdings →
+                </div>
+              </>
+            )}
+
+            {/* TAB 1: Trades */}
+            {tab === 1 && (
+              <>
+                {myTrades.length > 0 ? (
+                  <Tile hover={false} style={{ overflow: "hidden" }}>
+                    {myTrades.map((t, i) => (
+                      <div key={i} style={{
+                        display: "flex", alignItems: "center", gap: 8, padding: "10px 14px",
+                        borderBottom: i < myTrades.length - 1 ? "1px solid " + K.borderLight : "none",
+                        fontSize: 12, fontFamily: ff,
+                      }}>
+                        <span style={{ color: K.cyan, fontFamily: mono, fontSize: 10, width: 36, opacity: 0.7 }}>{ago(t.traded_at).replace(" ago","")}</span>
+                        <span style={{
+                          fontFamily: ff, fontSize: 11, fontWeight: 600,
+                          color: t.direction === "buy" ? K.profit : K.loss,
+                          background: t.direction === "buy" ? K.profitBg : K.lossBg,
+                          padding: "2px 6px", borderRadius: 4,
+                        }}>{t.direction === "buy" ? "Buy" : "Sell"}</span>
+                        <span style={{ color: K.text, fontFamily: mono, fontWeight: 500 }}>{fmt(t.usd_amount)}</span>
+                        <span onClick={() => window.open(WALLET_XYZ_REF, "_blank")} style={{ color: K.accent, fontWeight: 600, marginLeft: "auto", cursor: "pointer" }}>{t.token_symbol}</span>
+                      </div>
+                    ))}
+                  </Tile>
+                ) : (
+                  <div style={{ textAlign: "center", padding: 30, fontFamily: ff, fontSize: 13, color: K.textMuted }}>No recent trades found</div>
+                )}
+              </>
+            )}
+
+            {/* TAB 2: Holdings */}
+            {tab === 2 && (
+              <>
+                {entry.holdings && entry.holdings.length > 0 ? (
+                  <Tile hover={false} style={{ overflow: "hidden" }}>
+                    {entry.holdings.map((h, i) => {
+                      const pnl = h.realized_pnl_usd || 0;
+                      return (
+                        <div key={i} style={{
+                          display: "flex", alignItems: "center", gap: 10, padding: "10px 14px",
+                          borderBottom: i < entry.holdings.length - 1 ? "1px solid " + K.borderLight : "none",
+                        }}>
+                          <TokenIcon address={h.token_address} symbol={h.token_symbol} size={28} />
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontFamily: ff, fontSize: 13, fontWeight: 600, color: K.text }}>{h.token_symbol || "UNKNOWN"}</div>
+                            <div style={{ fontFamily: mono, fontSize: 10, color: K.textMuted }}>{fmt(h.est_value_usd)} cost</div>
+                          </div>
+                          <span style={{
+                            fontFamily: mono, fontSize: 11, fontWeight: 600,
+                            color: pnl >= 0 ? K.profit : K.loss,
+                            background: pnl >= 0 ? K.profitBg : K.lossBg,
+                            padding: "2px 6px", borderRadius: 5,
+                          }}>{(pnl >= 0 ? "+" : "") + fmt(pnl)}</span>
+                        </div>
+                      );
+                    })}
+                  </Tile>
+                ) : (
+                  <div style={{ textAlign: "center", padding: 30, fontFamily: ff, fontSize: 13, color: K.textMuted }}>No holdings data yet</div>
+                )}
+              </>
+            )}
+          </div>
 
           {/* Action buttons */}
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
             <button onClick={() => window.open(WALLET_XYZ_REF, "_blank")} style={{
               fontFamily: ff, fontSize: 13, fontWeight: 600,
               color: "#fff", background: K.accent,
