@@ -17,161 +17,172 @@ function FireLoadingScreen({ onFinished }) {
 
   useEffect(() => {
     if (progress >= 100) {
-      setTimeout(() => setFadeOut(true), 300);
-      setTimeout(() => onFinished(), 800);
+      setTimeout(() => setFadeOut(true), 400);
+      setTimeout(() => onFinished(), 900);
     }
   }, [progress, onFinished]);
 
   return (
     <div style={{
       position: "fixed", inset: 0, zIndex: 9999,
-      background: "#0a0a0a",
+      background: "#fafafa",
       display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
       opacity: fadeOut ? 0 : 1,
       transition: "opacity 0.5s ease",
+      overflow: "hidden",
     }}>
       <style>{`
         @keyframes fireFloat {
-          0% { transform: translateY(0) scale(1); opacity: 1; }
-          50% { transform: translateY(-40px) scale(1.2); opacity: 0.8; }
-          100% { transform: translateY(-80px) scale(0.3); opacity: 0; }
+          0% { transform: translateY(0) scale(1); opacity: 0.7; }
+          50% { transform: translateY(-50px) scale(1.1); opacity: 0.4; }
+          100% { transform: translateY(-100px) scale(0.2); opacity: 0; }
         }
-        @keyframes fireGlow {
-          0%, 100% { filter: blur(0px) brightness(1); }
-          50% { filter: blur(1px) brightness(1.3); }
+        @keyframes emberRise {
+          0% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0.8; }
+          30% { transform: translateY(-25px) translateX(6px) rotate(120deg); opacity: 0.6; }
+          60% { transform: translateY(-55px) translateX(-4px) rotate(240deg); opacity: 0.3; }
+          100% { transform: translateY(-90px) translateX(3px) rotate(360deg); opacity: 0; }
         }
-        @keyframes loadPulse {
-          0%, 100% { opacity: 0.6; }
-          50% { opacity: 1; }
+        @keyframes logoEnter {
+          0% { transform: scale(0.6) translateY(20px); opacity: 0; filter: blur(4px); }
+          60% { transform: scale(1.05) translateY(-2px); opacity: 1; filter: blur(0); }
+          100% { transform: scale(1) translateY(0); opacity: 1; filter: blur(0); }
         }
-        @keyframes logoReveal {
-          0% { transform: scale(0.8); opacity: 0; }
-          100% { transform: scale(1); opacity: 1; }
+        @keyframes logoGlow {
+          0%, 100% { filter: drop-shadow(0 4px 20px rgba(204,0,0,0.15)); }
+          50% { filter: drop-shadow(0 4px 30px rgba(204,0,0,0.3)) drop-shadow(0 0 60px rgba(204,0,0,0.1)); }
         }
-        @keyframes textReveal {
-          0% { transform: translateY(12px); opacity: 0; }
+        @keyframes textSlide {
+          0% { transform: translateY(16px); opacity: 0; }
           100% { transform: translateY(0); opacity: 1; }
         }
-        @keyframes embers {
-          0% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 1; }
-          25% { transform: translateY(-30px) translateX(8px) rotate(90deg); opacity: 0.9; }
-          50% { transform: translateY(-60px) translateX(-5px) rotate(180deg); opacity: 0.6; }
-          75% { transform: translateY(-90px) translateX(12px) rotate(270deg); opacity: 0.3; }
-          100% { transform: translateY(-120px) translateX(-2px) rotate(360deg); opacity: 0; }
+        @keyframes barPulse {
+          0%, 100% { box-shadow: 0 0 6px rgba(204,0,0,0.15); }
+          50% { box-shadow: 0 0 16px rgba(204,0,0,0.3); }
         }
-        @keyframes barGlow {
-          0%, 100% { box-shadow: 0 0 8px rgba(229,67,46,0.3); }
-          50% { box-shadow: 0 0 20px rgba(229,67,46,0.6), 0 0 40px rgba(255,120,50,0.2); }
+        @keyframes dotPulse {
+          0%, 100% { opacity: 0.3; }
+          50% { opacity: 1; }
+        }
+        @keyframes shimmer {
+          0% { background-position: -200px 0; }
+          100% { background-position: 200px 0; }
         }
       `}</style>
 
-      {/* Fire particles */}
-      {Array.from({ length: 20 }, (_, i) => {
-        const left = 35 + Math.random() * 30;
-        const delay = Math.random() * 2;
-        const dur = 1.2 + Math.random() * 1.5;
-        const size = 3 + Math.random() * 6;
-        const colors = ["#e5432e", "#ff6b35", "#ff9a3c", "#ffd93d", "#ff4444"];
+      {/* Subtle radial glow behind logo */}
+      <div style={{
+        position: "absolute",
+        width: 400, height: 400,
+        borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(204,0,0,0.06) 0%, rgba(204,0,0,0.02) 40%, transparent 70%)",
+        pointerEvents: "none",
+      }} />
+
+      {/* Red fire particles - softer on white bg */}
+      {Array.from({ length: 16 }, (_, i) => {
+        const left = 38 + Math.random() * 24;
+        const delay = Math.random() * 2.5;
+        const dur = 1.5 + Math.random() * 1.5;
+        const size = 3 + Math.random() * 5;
+        const colors = ["#cc0000", "#e53e3e", "#e5432e", "#ff6b6b", "#ff8787"];
         const color = colors[Math.floor(Math.random() * colors.length)];
         return (
           <div key={i} style={{
             position: "absolute",
             left: left + "%",
-            bottom: "38%",
+            bottom: "35%",
             width: size,
             height: size,
             borderRadius: "50%",
             background: color,
+            opacity: 0.5,
             animation: `fireFloat ${dur}s ease-out ${delay}s infinite`,
-            boxShadow: `0 0 ${size}px ${color}`,
+            boxShadow: `0 0 ${size + 2}px ${color}40`,
           }} />
         );
       })}
 
-      {/* Ember sparks */}
-      {Array.from({ length: 12 }, (_, i) => {
-        const left = 40 + Math.random() * 20;
+      {/* Tiny ember sparks */}
+      {Array.from({ length: 10 }, (_, i) => {
+        const left = 42 + Math.random() * 16;
         const delay = Math.random() * 3;
         const dur = 2 + Math.random() * 2;
         return (
           <div key={"e" + i} style={{
             position: "absolute",
             left: left + "%",
-            bottom: "42%",
-            width: 2,
-            height: 2,
+            bottom: "40%",
+            width: 2, height: 2,
             borderRadius: "50%",
-            background: "#ffd93d",
-            animation: `embers ${dur}s ease-out ${delay}s infinite`,
-            boxShadow: "0 0 3px #ff9a3c",
+            background: "#cc0000",
+            animation: `emberRise ${dur}s ease-out ${delay}s infinite`,
           }} />
         );
       })}
 
-      {/* Logo + text */}
+      {/* Main content */}
       <div style={{ position: "relative", zIndex: 2, textAlign: "center" }}>
-        {/* Base blue square logo */}
-        <div style={{
-          width: 64, height: 64, borderRadius: 14,
-          background: "#0052FF",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          margin: "0 auto 20px",
-          animation: "logoReveal 0.6s ease-out forwards",
-          boxShadow: "0 0 30px rgba(0,82,255,0.3), 0 8px 32px rgba(0,0,0,0.4)",
-        }}>
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <circle cx="16" cy="16" r="12" fill="white"/>
-            <circle cx="16" cy="16" r="6" fill="#0052FF"/>
-          </svg>
-        </div>
+        {/* Logo image */}
+        <img
+          src="/logo.png"
+          alt="HiScore"
+          style={{
+            width: 100, height: 100,
+            objectFit: "contain",
+            animation: "logoEnter 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards, logoGlow 3s ease 0.8s infinite",
+            marginBottom: 24,
+          }}
+        />
 
         {/* HISCORE text */}
         <div style={{
-          fontFamily: "'Space Grotesk', 'Inter', sans-serif",
-          fontSize: 28, fontWeight: 800, letterSpacing: "0.12em",
-          color: "#ffffff",
-          animation: "textReveal 0.5s ease-out 0.2s both",
-          textShadow: "0 0 20px rgba(229,67,46,0.4)",
+          fontFamily: "'Space Grotesk', 'Inter', system-ui, sans-serif",
+          fontSize: 32, fontWeight: 800, letterSpacing: "0.14em",
+          color: "#cc0000",
+          animation: "textSlide 0.5s ease-out 0.3s both",
         }}>HISCORE</div>
 
-        {/* Subtitle */}
+        {/* Tagline */}
         <div style={{
-          fontFamily: "'Space Grotesk', 'Inter', sans-serif",
-          fontSize: 13, fontWeight: 400, color: "rgba(255,255,255,0.4)",
-          marginTop: 6, letterSpacing: "0.04em",
-          animation: "textReveal 0.5s ease-out 0.4s both",
-        }}>Base Chain Trader Leaderboard</div>
+          fontFamily: "'Space Grotesk', 'Inter', system-ui, sans-serif",
+          fontSize: 13, fontWeight: 500, color: "#999",
+          marginTop: 6, letterSpacing: "0.06em",
+          animation: "textSlide 0.5s ease-out 0.5s both",
+        }}>Top traders on Base</div>
 
         {/* Progress bar */}
         <div style={{
-          width: 200, height: 3, background: "rgba(255,255,255,0.08)",
-          borderRadius: 4, margin: "28px auto 0", overflow: "hidden",
-          animation: "barGlow 2s ease infinite",
+          width: 180, height: 3, background: "rgba(204,0,0,0.08)",
+          borderRadius: 4, margin: "30px auto 0", overflow: "hidden",
+          animation: "barPulse 2s ease infinite",
         }}>
           <div style={{
             height: "100%",
             width: Math.min(progress, 100) + "%",
-            background: "linear-gradient(90deg, #e5432e, #ff6b35, #ffd93d)",
+            background: "linear-gradient(90deg, #cc0000, #e5432e, #ff6b6b)",
             borderRadius: 4,
             transition: "width 0.15s ease",
-            boxShadow: "0 0 8px rgba(229,67,46,0.5)",
           }} />
         </div>
 
-        {/* Loading text */}
-        <div style={{
-          fontFamily: "'Space Grotesk', 'Inter', sans-serif",
-          fontSize: 11, color: "rgba(255,255,255,0.25)",
-          marginTop: 12, letterSpacing: "0.08em",
-          animation: "loadPulse 1.5s ease infinite",
-        }}>LOADING LEADERBOARD</div>
+        {/* Loading dots */}
+        <div style={{ marginTop: 16, display: "flex", justifyContent: "center", gap: 4 }}>
+          {[0, 1, 2].map(i => (
+            <div key={i} style={{
+              width: 4, height: 4, borderRadius: "50%",
+              background: "#cc0000",
+              animation: `dotPulse 1.2s ease ${i * 0.2}s infinite`,
+            }} />
+          ))}
+        </div>
       </div>
 
-      {/* Bottom glow */}
+      {/* Bottom accent line */}
       <div style={{
-        position: "absolute", bottom: 0, left: "10%", right: "10%", height: 120,
-        background: "radial-gradient(ellipse at center bottom, rgba(229,67,46,0.08) 0%, transparent 70%)",
-        pointerEvents: "none",
+        position: "absolute", bottom: 0, left: 0, right: 0, height: 2,
+        background: "linear-gradient(90deg, transparent, #cc0000, #e5432e, #cc0000, transparent)",
+        opacity: 0.3,
       }} />
     </div>
   );
