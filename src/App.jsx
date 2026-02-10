@@ -63,6 +63,7 @@ function mapLeaderboard(apiData) {
     pnl24h: 0,
     xp: Math.abs(e.stats.total_pnl || 0) * 10,
     copiers: 0,
+    holdings: e.holdings || [],
     updated_at: e.updated_at,
   }));
   const trades = (apiData.live_trades || []).map((t, i) => ({
@@ -419,34 +420,35 @@ function SideProfile({ entry, trades }) {
           <span style={{ fontFamily: ff, fontSize: 14, fontWeight: 600, color: K.text }}>Current Holdings</span>
         </div>
         <div style={{ padding: 4 }}>
-          {["BRETT","DEGEN","HIGHER","TOSHI","AERO"].slice(0, 3 + Math.floor(Math.random() * 2)).map((tok, i) => {
-            const val = Math.random() * 8000 + 200;
-            const pnlPct = (Math.random() - 0.35) * 100;
+          {(!entry.holdings || entry.holdings.length === 0) ? (
+            <div style={{ padding: 16, textAlign: "center", fontFamily: ff, fontSize: 13, color: K.textMuted }}>No open positions</div>
+          ) : entry.holdings.map((h, i) => {
+            const pnl = h.realized_pnl_usd || 0;
             return (
               <div key={i} style={{
                 display: "flex", alignItems: "center", gap: 10, padding: "9px 12px",
-                borderBottom: i < 4 ? "1px solid " + K.borderLight : "none",
+                borderBottom: i < entry.holdings.length - 1 ? "1px solid " + K.borderLight : "none",
               }}>
                 <div style={{
                   width: 28, height: 28, borderRadius: 8, background: K.accentLight,
                   display: "flex", alignItems: "center", justifyContent: "center",
                   fontFamily: ff, fontSize: 10, fontWeight: 700, color: K.accent,
-                }}>{tok.slice(0,2)}</div>
+                }}>{(h.token_symbol || "??").slice(0,2)}</div>
                 <div style={{ flex: 1 }}>
                   <div
-                    onClick={(ev) => { ev.stopPropagation(); window.open("https://wallet.xyz/token/" + tok.toLowerCase(), "_blank"); }}
+                    onClick={(ev) => { ev.stopPropagation(); window.open("https://basescan.org/token/" + h.token_address, "_blank"); }}
                     style={{ fontFamily: ff, fontSize: 13, fontWeight: 600, color: K.accent, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 3 }}
                     onMouseEnter={(ev) => ev.currentTarget.style.textDecoration = "underline"}
                     onMouseLeave={(ev) => ev.currentTarget.style.textDecoration = "none"}
-                  >{tok}<span style={{ fontSize: 10, color: K.textMuted }}>{">"}</span></div>
-                  <div style={{ fontFamily: mono, fontSize: 11, color: K.textMuted }}>{fmt(val)}</div>
+                  >{h.token_symbol || "UNKNOWN"}<span style={{ fontSize: 10, color: K.textMuted }}>{">"}</span></div>
+                  <div style={{ fontFamily: mono, fontSize: 11, color: K.textMuted }}>{fmt(h.est_value_usd)} cost basis</div>
                 </div>
                 <span style={{
                   fontFamily: mono, fontSize: 12, fontWeight: 600,
-                  color: pnlPct >= 0 ? K.profit : K.loss,
-                  background: pnlPct >= 0 ? K.profitBg : K.lossBg,
+                  color: pnl >= 0 ? K.profit : K.loss,
+                  background: pnl >= 0 ? K.profitBg : K.lossBg,
                   padding: "2px 8px", borderRadius: 6,
-                }}>{(pnlPct >= 0 ? "+" : "") + pnlPct.toFixed(1) + "%"}</span>
+                }}>{(pnl >= 0 ? "+" : "") + fmt(pnl)}</span>
               </div>
             );
           })}
