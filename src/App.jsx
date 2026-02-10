@@ -448,7 +448,6 @@ function ShareCard({ entry, onClose }) {
 
 /* ======================= SUBMIT WALLET MODAL ======================= */
 const SUPABASE_URL = "https://ppqbosrweabdqayawhbw.supabase.co";
-const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwcWJvc3J3ZWFiZHFheWF3aGJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0MzY3ODQsImV4cCI6MjA4NjAxMjc4NH0.DBP_rFg3fZZUcYrVVHU3riZuuiF5AWcW1Ickxlud7EQ";
 
 function SubmitWalletModal({ onClose }) {
   const [addr, setAddr] = useState("");
@@ -463,21 +462,17 @@ function SubmitWalletModal({ onClose }) {
     if (!isValidAddr) return;
     setSubmitting(true);
     try {
-      const res = await fetch(SUPABASE_URL + "/rest/v1/wallet_submissions", {
+      const res = await fetch(SUPABASE_URL + "/functions/v1/submit-claim", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "apikey": SUPABASE_ANON,
-          "Authorization": "Bearer " + SUPABASE_ANON,
-          "Prefer": "return=minimal",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           wallet_address: addr.trim().toLowerCase(),
-          wallet_label: label.trim() || null,
-          twitter_handle: twitter.trim().replace(/^@/, "") || null,
+          display_name: label.trim() || null,
+          twitter: twitter.trim().replace(/^@/, "") || null,
         }),
       });
-      if (res.ok || res.status === 201) setResult("success");
+      const data = await res.json();
+      if (res.ok && data.success) setResult("success");
       else if (res.status === 409) setResult("duplicate");
       else setResult("error");
     } catch { setResult("error"); }
@@ -502,9 +497,9 @@ function SubmitWalletModal({ onClose }) {
         {result === "success" ? (
           <div style={{ textAlign: "center", padding: "20px 0" }}>
             <div style={{ fontSize: 48, marginBottom: 12 }}>{"\u2705"}</div>
-            <div style={{ fontFamily: ff, fontSize: 20, fontWeight: 700, color: K.text, marginBottom: 8 }}>Wallet Submitted!</div>
+            <div style={{ fontFamily: ff, fontSize: 20, fontWeight: 700, color: K.text, marginBottom: 8 }}>Submitted!</div>
             <div style={{ fontFamily: ff, fontSize: 14, color: K.textSec, lineHeight: 1.6 }}>
-              We'll review and add it to the leaderboard soon. Follow <span style={{ color: K.accent, fontWeight: 600 }}>@HiScoreBase</span> for updates.
+              We'll review your claim and update the leaderboard soon. Follow <span style={{ color: K.accent, fontWeight: 600 }}>@HiScoreBase</span> for updates.
             </div>
             <button onClick={onClose} style={{
               fontFamily: ff, fontSize: 14, fontWeight: 600, marginTop: 20,
@@ -527,8 +522,8 @@ function SubmitWalletModal({ onClose }) {
           <>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
               <div>
-                <div style={{ fontFamily: ff, fontSize: 20, fontWeight: 700, color: K.text }}>Submit a Wallet</div>
-                <div style={{ fontFamily: ff, fontSize: 13, color: K.textSec, marginTop: 2 }}>Add a trader to the HiScore leaderboard</div>
+                <div style={{ fontFamily: ff, fontSize: 20, fontWeight: 700, color: K.text }}>Submit / Claim Wallet</div>
+                <div style={{ fontFamily: ff, fontSize: 13, color: K.textSec, marginTop: 2 }}>Add a wallet or claim your profile on the leaderboard</div>
               </div>
               <button onClick={onClose} style={{
                 width: 32, height: 32, borderRadius: 8, border: "1px solid " + K.border,
@@ -556,7 +551,7 @@ function SubmitWalletModal({ onClose }) {
             </div>
 
             <div style={{ marginBottom: 14 }}>
-              <label style={{ fontFamily: ff, fontSize: 12, fontWeight: 600, color: K.textSec, display: "block", marginBottom: 6 }}>LABEL / NAME</label>
+              <label style={{ fontFamily: ff, fontSize: 12, fontWeight: 600, color: K.textSec, display: "block", marginBottom: 6 }}>DISPLAY NAME *</label>
               <input
                 value={label} onChange={e => setLabel(e.target.value)}
                 placeholder="e.g. DegenerateApe"
@@ -583,20 +578,20 @@ function SubmitWalletModal({ onClose }) {
 
             <button
               onClick={handleSubmit}
-              disabled={!isValidAddr || submitting}
+              disabled={!isValidAddr || !label.trim() || submitting}
               style={{
                 width: "100%", padding: "14px 0",
                 fontFamily: ff, fontSize: 15, fontWeight: 700,
                 color: K.white,
-                background: isValidAddr ? K.accent : K.textFaint,
-                border: "none", borderRadius: 12, cursor: isValidAddr ? "pointer" : "not-allowed",
+                background: isValidAddr && label.trim() ? K.accent : K.textFaint,
+                border: "none", borderRadius: 12, cursor: isValidAddr && label.trim() ? "pointer" : "not-allowed",
                 opacity: submitting ? 0.7 : 1,
                 transition: "all 0.15s ease",
               }}
-            >{submitting ? "Submitting..." : "Submit Wallet"}</button>
+            >{submitting ? "Submitting..." : "Submit"}</button>
 
             <div style={{ fontFamily: ff, fontSize: 11, color: K.textMuted, textAlign: "center", marginTop: 12, lineHeight: 1.5 }}>
-              Base chain only. Submissions are reviewed before appearing on the leaderboard.
+              Base chain only. Submit a new wallet or claim an existing one. All submissions are reviewed before going live.
             </div>
           </>
         )}
@@ -1619,7 +1614,7 @@ export default function HiScore() {
           fontFamily: ff, fontSize: 12, fontWeight: 600,
           color: "#fff", background: K.accent, border: "none", borderRadius: 7,
           padding: "5px 14px", cursor: "pointer", transition: "opacity 0.15s",
-        }} onMouseEnter={e => e.currentTarget.style.opacity = "0.85"} onMouseLeave={e => e.currentTarget.style.opacity = "1"}>+ Submit Wallet</button>
+        }} onMouseEnter={e => e.currentTarget.style.opacity = "0.85"} onMouseLeave={e => e.currentTarget.style.opacity = "1"}>+ Submit / Claim</button>
         <button onClick={toggleTheme} style={{
           width: 30, height: 30, borderRadius: 7, border: "1px solid " + K.border,
           background: K.card, cursor: "pointer", fontSize: 14, lineHeight: 1, marginLeft: 8,
