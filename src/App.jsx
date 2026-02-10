@@ -845,24 +845,24 @@ function SearchPanel({ onSelect, leaders }) {
         const w = ld.wallet;
         return (
           <Tile key={w.id} onClick={() => onSelect(ld)} style={{
-            display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", marginBottom: 8,
+            display: "flex", alignItems: "center", gap: 8, padding: "12px 12px", marginBottom: 8, overflow: "hidden",
           }}>
             <div style={{
-              width: 36, height: 36, borderRadius: 10, background: K.bg,
+              width: 32, height: 32, borderRadius: 8, background: K.bg, flexShrink: 0,
               border: "1px solid " + K.border,
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
-              <img src={AVATARS[w.avi || 0]} alt="" style={{ width: 26, height: 26, imageRendering: "pixelated" }} />
+              <img src={AVATARS[w.avi || 0]} alt="" style={{ width: 22, height: 22, imageRendering: "pixelated" }} />
             </div>
-            <div style={{ flex: 1 }}>
-              <span style={{ fontFamily: ff, fontSize: 14, fontWeight: 600, color: K.text }}>{w.label}</span>
-              <span style={{ fontFamily: mono, fontSize: 11, color: K.cyan, marginLeft: 8 }}>{shortAddr(w.addr)}</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: ff, fontSize: 13, fontWeight: 600, color: K.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{w.label}</div>
+              <div style={{ fontFamily: mono, fontSize: 10, color: K.cyan }}>{shortAddr(w.addr)}</div>
             </div>
             <span style={{
-              fontFamily: mono, fontSize: 13, fontWeight: 600,
+              fontFamily: mono, fontSize: 11, fontWeight: 600, flexShrink: 0, whiteSpace: "nowrap",
               color: ld.pnl >= 0 ? K.profit : K.loss,
               background: ld.pnl >= 0 ? K.profitBg : K.lossBg,
-              padding: "2px 8px", borderRadius: 6,
+              padding: "2px 6px", borderRadius: 5,
             }}>{(ld.pnl >= 0 ? "+" : "") + fmt(ld.pnl)}</span>
           </Tile>
         );
