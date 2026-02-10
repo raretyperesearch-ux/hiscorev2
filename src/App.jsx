@@ -1484,7 +1484,7 @@ export default function HiScore() {
               padding: "14px 16px", display: "flex", flexDirection: "column",
               alignItems: "center", borderBottom: "1px solid " + K.borderLight,
             }}>
-              <p style={{ fontSize: 12, color: K.textMuted, marginBottom: 8 }}>Top traders &bull; Base Chain</p>
+              <p style={{ fontSize: 14, fontWeight: 600, color: K.text, marginBottom: 8, margin: "0 0 8px 0" }}>Top traders ranked by all-time profit on Base</p>
               <div style={{ display: "flex", gap: 4 }}>
                 {[{id:"all",label:"Overall"},{id:"24h",label:"24h"},{id:"7d",label:"7d"},{id:"30d",label:"30d"}].map((p) => (
                   <button key={p.id} onClick={() => { setPeriod(p.id); setLoading(true); }} style={{
@@ -1643,8 +1643,7 @@ export default function HiScore() {
                   alignItems: "center", justifyContent: "center",
                   borderBottom: "1px solid " + K.borderLight,
                 }}>
-                  <h2 style={{ fontSize: 20, fontWeight: 700, color: K.text, letterSpacing: "0.08em", margin: 0 }}>HISCORE</h2>
-                  <p style={{ fontSize: 13, color: K.textMuted, marginTop: 4 }}>Top traders ranked by all-time profit &bull; Base Chain</p>
+                  <p style={{ fontSize: 18, fontWeight: 600, color: K.text, marginTop: 0, margin: 0, textAlign: "center", lineHeight: 1.4 }}>Top traders ranked by all-time profit on Base</p>
                   <div style={{ display: "flex", gap: 4, marginTop: 12 }}>
                     {[{id:"all",label:"Overall"},{id:"24h",label:"24h"},{id:"7d",label:"7d"},{id:"30d",label:"30d"}].map((p) => (
                       <button key={p.id} onClick={() => { setPeriod(p.id); setLoading(true); }} style={{
