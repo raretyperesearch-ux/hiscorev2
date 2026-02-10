@@ -124,41 +124,43 @@ const DC = { Grandmaster: "#9333ea", Master: "#f97316", Elite: "#0ea5e9", Hard: 
   Think: polished chrome on white marble.
 */
 
-const K = {
-  bg: "#fafafa",
-  white: "#ffffff",
-  card: "#ffffff",
-  cardHover: "#fefefe",
-  border: "#e8e8ec",
-  borderLight: "#f0f0f4",
-  borderFocus: "#e5432e",
-
-  text: "#18181b",
-  textSec: "#71717a",
-  textMuted: "#a1a1aa",
-  textFaint: "#d4d4d8",
-
-  accent: "#e5432e",
-  accentLight: "#fef2f0",
-  accentSoft: "#fecaca",
-  cyan: "#00c8d6",
-
-  profit: "#16a34a",
-  profitBg: "#f0fdf4",
-  loss: "#dc2626",
-  lossBg: "#fef2f2",
-
-  gold: "#d97706",
-  silver: "#71717a",
-  bronze: "#c2410c",
+const LIGHT = {
+  bg: "#fafafa", white: "#ffffff", card: "#ffffff", cardHover: "#fefefe",
+  border: "#e8e8ec", borderLight: "#f0f0f4", borderFocus: "#e5432e",
+  text: "#18181b", textSec: "#71717a", textMuted: "#a1a1aa", textFaint: "#d4d4d8",
+  accent: "#e5432e", accentLight: "#fef2f0", accentSoft: "#fecaca", cyan: "#00c8d6",
+  profit: "#16a34a", profitBg: "#f0fdf4", loss: "#dc2626", lossBg: "#fef2f2",
+  gold: "#d97706", silver: "#71717a", bronze: "#c2410c",
+  medalBgs: ["#fffbeb", "#fafafa", "#fff7ed"],
+  shimmer: "linear-gradient(90deg, #f0f0f4 25%, #e8e8ec 37%, #f0f0f4 63%)",
+  cardShadow: "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)",
+  cardShadowHover: "0 4px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)",
+  tileShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02), inset 0 1px 0 rgba(255,255,255,0.8)",
+  scrollThumb: "#d4d4d8", scrollHover: "#a1a1aa",
 };
 
-/* Soft card shadow — the "liquid metal" sheen */
-const cardShadow = "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)";
-const cardShadowHover = "0 4px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)";
-const tileShadow = "0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02), inset 0 1px 0 rgba(255,255,255,0.8)";
+const DARK = {
+  bg: "#0a0a0b", white: "#111113", card: "#18181b", cardHover: "#1e1e22",
+  border: "#27272a", borderLight: "#1e1e22", borderFocus: "#e5432e",
+  text: "#fafafa", textSec: "#a1a1aa", textMuted: "#71717a", textFaint: "#3f3f46",
+  accent: "#e5432e", accentLight: "rgba(229,67,46,0.12)", accentSoft: "rgba(229,67,46,0.2)", cyan: "#22d3ee",
+  profit: "#4ade80", profitBg: "rgba(74,222,128,0.1)", loss: "#f87171", lossBg: "rgba(248,113,113,0.1)",
+  gold: "#fbbf24", silver: "#a1a1aa", bronze: "#f97316",
+  medalBgs: ["rgba(251,191,36,0.08)", "rgba(161,161,170,0.06)", "rgba(249,115,22,0.08)"],
+  shimmer: "linear-gradient(90deg, #1e1e22 25%, #27272a 37%, #1e1e22 63%)",
+  cardShadow: "0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2)",
+  cardShadowHover: "0 4px 12px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.3)",
+  tileShadow: "0 1px 3px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.03)",
+  scrollThumb: "#3f3f46", scrollHover: "#52525b",
+};
 
-const STYLES = [
+/* Global mutable theme — updated by toggle */
+let K = DARK;
+let cardShadow = K.cardShadow;
+let cardShadowHover = K.cardShadowHover;
+let tileShadow = K.tileShadow;
+
+function getStyles() { return [
   "@import url('https://cdn.jsdelivr.net/npm/geist@1.2.0/dist/fonts/geist-sans/style.min.css');",
   "@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');",
   "",
@@ -174,12 +176,12 @@ const STYLES = [
   "body { background:" + K.bg + "; overflow:hidden; -webkit-tap-highlight-color: transparent; }",
   "::-webkit-scrollbar { width:6px; }",
   "::-webkit-scrollbar-track { background:transparent; }",
-  "::-webkit-scrollbar-thumb { background:#d4d4d8; border-radius:3px; }",
-  "::-webkit-scrollbar-thumb:hover { background:#a1a1aa; }",
+  "::-webkit-scrollbar-thumb { background:" + K.scrollThumb + "; border-radius:3px; }",
+  "::-webkit-scrollbar-thumb:hover { background:" + K.scrollHover + "; }",
   ".tap-scale { transition: transform 0.1s ease; }",
   ".tap-scale:active { transform: scale(0.97); }",
   "@keyframes tickerScroll { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }",
-].join("\n");
+].join("\n"); }
 
 const ff = "'Geist Sans', 'Geist', -apple-system, sans-serif";
 const mono = "'JetBrains Mono', monospace";
@@ -214,7 +216,7 @@ function Shimmer({ width, height, borderRadius, style }) {
   return (
     <div style={{
       width: width || "100%", height: height || 14, borderRadius: borderRadius || 6,
-      background: "linear-gradient(90deg, #f0f0f4 25%, #e8e8ec 37%, #f0f0f4 63%)",
+      background: K.shimmer,
       backgroundSize: "400px 100%",
       animation: "shimmer 1.4s ease infinite",
       ...style,
@@ -478,7 +480,7 @@ function SubmitWalletModal({ onClose }) {
             </div>
             <button onClick={onClose} style={{
               fontFamily: ff, fontSize: 14, fontWeight: 600, marginTop: 20,
-              color: K.white, background: K.accent, border: "none", borderRadius: 10,
+              color: "#fff", background: K.accent, border: "none", borderRadius: 10,
               padding: "12px 32px", cursor: "pointer",
             }}>Done</button>
           </div>
@@ -489,7 +491,7 @@ function SubmitWalletModal({ onClose }) {
             <div style={{ fontFamily: ff, fontSize: 14, color: K.textSec }}>This wallet is already pending review.</div>
             <button onClick={onClose} style={{
               fontFamily: ff, fontSize: 14, fontWeight: 600, marginTop: 20,
-              color: K.white, background: K.accent, border: "none", borderRadius: 10,
+              color: "#fff", background: K.accent, border: "none", borderRadius: 10,
               padding: "12px 32px", cursor: "pointer",
             }}>OK</button>
           </div>
@@ -645,7 +647,7 @@ function Ticker({ leaders, trades }) {
   return (
     <div style={{
       overflow: "hidden", whiteSpace: "nowrap",
-      background: "#18181b", borderBottom: "1px solid #27272a",
+      background: K.card, borderBottom: "1px solid " + K.border,
       height: 28, display: "flex", alignItems: "center",
       flexShrink: 0,
     }}>
@@ -713,7 +715,7 @@ function HiscoresTable({ onSelect, selected, leaders }) {
         const active = selected && selected.wallet && selected.wallet.id === e.wallet.id;
         const isTop3 = i < 3;
         const medals = [K.gold, K.silver, K.bronze];
-        const medalBgs = ["#fffbeb", "#fafafa", "#fff7ed"];
+        const medalBgs = K.medalBgs;
         const lastTrade = e.updated_at || new Date().toISOString();
 
         return (
@@ -791,7 +793,7 @@ function HiscoresTable({ onSelect, selected, leaders }) {
             {/* Copy */}
             <button onClick={(ev) => { ev.stopPropagation(); window.open("https://wallet.xyz/@HISCORE", "_blank"); }} style={{
               fontFamily: mono, fontSize: 9, fontWeight: 700,
-              color: K.white, background: K.accent,
+              color: "#fff", background: K.accent,
               border: "none", borderRadius: 5,
               padding: "4px 6px", cursor: "pointer",
               transition: "opacity 0.15s", lineHeight: 1,
@@ -840,7 +842,7 @@ function SideProfile({ entry, trades, onShare }) {
         <div style={{ display: "flex", gap: 8, marginTop: 12, width: "100%" }}>
           <button onClick={() => window.open("https://wallet.xyz/@HISCORE", "_blank")} style={{
             fontFamily: ff, fontSize: 12, fontWeight: 600,
-            color: K.white, background: K.accent,
+            color: "#fff", background: K.accent,
             border: "none", borderRadius: 8,
             padding: "9px 0", cursor: "pointer",
             flex: 1, transition: "opacity 0.15s ease",
@@ -1014,7 +1016,7 @@ function MobileTable({ leaders, onSelect, selected }) {
         const active = selected?.wallet?.id === e.wallet.id;
         const isTop3 = i < 3;
         const medals = [K.gold, K.silver, K.bronze];
-        const medalBgs = ["#fffbeb", "#fafafa", "#fff7ed"];
+        const medalBgs = K.medalBgs;
         return (
           <div key={i} onClick={() => onSelect(e)} className="tap-scale" style={{
             display: "grid", gridTemplateColumns: "30px 1fr 80px",
@@ -1199,7 +1201,7 @@ function MobileProfileSheet({ entry, trades, onClose, onShare }) {
           <div style={{ display: "flex", gap: 8 }}>
             <button onClick={() => window.open("https://wallet.xyz/@HISCORE", "_blank")} style={{
               fontFamily: ff, fontSize: 13, fontWeight: 600,
-              color: K.white, background: K.accent,
+              color: "#fff", background: K.accent,
               border: "none", borderRadius: 10,
               padding: "12px 0", cursor: "pointer", flex: 1,
             }}>{"\u2197 Copy Trader"}</button>
@@ -1356,6 +1358,22 @@ export default function HiScore() {
   const [feedFilter, setFeedFilter] = useState("all");
   const [shareCard, setShareCard] = useState(null);
   const [showSubmit, setShowSubmit] = useState(false);
+  const [theme, setTheme] = useState(() => {
+    try { return localStorage.getItem("hs-theme") || "dark"; } catch { return "dark"; }
+  });
+
+  // Apply theme
+  useEffect(() => {
+    const t = theme === "dark" ? DARK : LIGHT;
+    Object.assign(K, t);
+    cardShadow = t.cardShadow;
+    cardShadowHover = t.cardShadowHover;
+    tileShadow = t.tileShadow;
+    document.body.style.background = t.bg;
+    try { localStorage.setItem("hs-theme", theme); } catch {}
+  }, [theme]);
+
+  const toggleTheme = () => setTheme(t => t === "dark" ? "light" : "dark");
   const feedRef = useRef(null);
   const firstLoad = useRef(true);
   const prevRanks = useRef({});
@@ -1407,7 +1425,7 @@ export default function HiScore() {
       height: "100vh", display: "flex", flexDirection: "column",
       fontFamily: ff, color: K.text, background: K.bg,
     }}>
-      <style>{STYLES}</style>
+      <style>{getStyles()}</style>
 
       {/* Mobile Header */}
       <header style={{
@@ -1417,8 +1435,15 @@ export default function HiScore() {
         background: K.white, height: 48,
         position: "relative",
       }}>
+        <div style={{ position: "absolute", left: 16 }}>
+          <button onClick={toggleTheme} style={{
+            width: 28, height: 28, borderRadius: 7, border: "1px solid " + K.border,
+            background: K.card, cursor: "pointer", fontSize: 14, lineHeight: 1,
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>{theme === "dark" ? "\u2600\ufe0f" : "\ud83c\udf19"}</button>
+        </div>
         <img src={LOGO_SVG} alt="" style={{ width: 22, height: 22, borderRadius: 5 }} />
-        <span style={{ fontFamily: ff, fontSize: 16, fontWeight: 700, letterSpacing: "0.06em", marginLeft: 8 }}>HISCORE</span>
+        <span style={{ fontFamily: ff, fontSize: 16, fontWeight: 700, letterSpacing: "0.06em", marginLeft: 8, color: K.text }}>HISCORE</span>
         <div style={{
           position: "absolute", bottom: 0, left: 0, right: 0, height: 2,
           background: "linear-gradient(90deg, " + K.accent + ", #f87171, " + K.accent + ")",
@@ -1523,7 +1548,7 @@ export default function HiScore() {
       height: "100vh", display: "flex", flexDirection: "column",
       fontFamily: ff, color: K.text, background: K.bg,
     }}>
-      <style>{STYLES}</style>
+      <style>{getStyles()}</style>
 
       {/* ===== HEADER ===== */}
       <header style={{
@@ -1565,9 +1590,14 @@ export default function HiScore() {
         <div style={{ flex: 1 }} />
         <button onClick={() => setShowSubmit(true)} style={{
           fontFamily: ff, fontSize: 12, fontWeight: 600,
-          color: K.white, background: K.accent, border: "none", borderRadius: 7,
+          color: "#fff", background: K.accent, border: "none", borderRadius: 7,
           padding: "5px 14px", cursor: "pointer", transition: "opacity 0.15s",
         }} onMouseEnter={e => e.currentTarget.style.opacity = "0.85"} onMouseLeave={e => e.currentTarget.style.opacity = "1"}>+ Submit Wallet</button>
+        <button onClick={toggleTheme} style={{
+          width: 30, height: 30, borderRadius: 7, border: "1px solid " + K.border,
+          background: K.card, cursor: "pointer", fontSize: 14, lineHeight: 1, marginLeft: 8,
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}>{theme === "dark" ? "\u2600\ufe0f" : "\ud83c\udf19"}</button>
         <div style={{
           position: "absolute", bottom: 0, left: 0, right: 0, height: 2,
           background: "linear-gradient(90deg, " + K.accent + ", #f87171, " + K.accent + ")",
