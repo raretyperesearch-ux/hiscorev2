@@ -592,6 +592,8 @@ export default function HiScore() {
   const [trades, setTrades] = useState([]);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState("all");
+  const [liveMin, setLiveMin] = useState(0);
+  const [feedFilter, setFeedFilter] = useState("all");
   const feedRef = useRef(null);
   const firstLoad = useRef(true);
 
@@ -721,14 +723,14 @@ export default function HiScore() {
                       border: "1px solid rgba(22,163,74,0.15)",
                     }}>LIVE</span>
                     <div style={{ display: "flex", gap: 3 }}>
-                      {["\u2265 $100", "\u2265 $500", "\u2265 $1K"].map((f, i) => (
-                        <button key={f} style={{
+                      {[{label:"\u2265 $100",val:100},{label:"\u2265 $500",val:500},{label:"\u2265 $1K",val:1000}].map((f) => (
+                        <button key={f.val} onClick={() => setLiveMin(liveMin === f.val ? 0 : f.val)} style={{
                           fontFamily: ff, fontSize: 11, fontWeight: 500,
-                          color: i === 1 ? K.text : K.textMuted,
-                          background: i === 1 ? K.bg : "transparent",
-                          border: "1px solid " + (i === 1 ? K.border : "transparent"),
+                          color: liveMin === f.val ? K.text : K.textMuted,
+                          background: liveMin === f.val ? K.bg : "transparent",
+                          border: "1px solid " + (liveMin === f.val ? K.border : "transparent"),
                           borderRadius: 6, padding: "3px 10px", cursor: "pointer",
-                        }}>{f}</button>
+                        }}>{f.label}</button>
                       ))}
                     </div>
                   </div>
@@ -749,7 +751,7 @@ export default function HiScore() {
                 </div>
                 {/* Trade rows */}
                 <div>
-                  {trades.map((t, i) => {
+                  {trades.filter(t => (t.usd_amount || 0) >= liveMin).map((t, i) => {
                     const buy = t.direction === "buy";
                     return (
                       <div key={i} style={{
@@ -820,19 +822,24 @@ export default function HiScore() {
                 }}>LIVE</span>
               </div>
               <div style={{ display: "flex", gap: 3 }}>
-                {["All", "Buys", "Sells", "Whale"].map((f, i) => (
-                  <button key={f} style={{
+                {[{id:"all",label:"All"},{id:"buy",label:"Buys"},{id:"sell",label:"Sells"},{id:"whale",label:"Whale"}].map((f) => (
+                  <button key={f.id} onClick={() => setFeedFilter(f.id)} style={{
                     fontFamily: ff, fontSize: 11, fontWeight: 500,
-                    color: i === 0 ? K.text : K.textMuted,
-                    background: i === 0 ? K.bg : "transparent",
-                    border: "1px solid " + (i === 0 ? K.border : "transparent"),
+                    color: feedFilter === f.id ? K.text : K.textMuted,
+                    background: feedFilter === f.id ? K.bg : "transparent",
+                    border: "1px solid " + (feedFilter === f.id ? K.border : "transparent"),
                     borderRadius: 6, padding: "2px 8px", cursor: "pointer",
-                  }}>{f}</button>
+                  }}>{f.label}</button>
                 ))}
               </div>
             </div>
             <div ref={feedRef} style={{ flex: 1, overflowY: "auto" }}>
-              {trades.map((t, i) => <FeedLine key={i} trade={t} />)}
+              {trades.filter(t => {
+                if (feedFilter === "buy") return t.direction === "buy";
+                if (feedFilter === "sell") return t.direction === "sell";
+                if (feedFilter === "whale") return (t.usd_amount || 0) >= 1000;
+                return true;
+              }).map((t, i) => <FeedLine key={i} trade={t} />)}
             </div>
           </div>}
         </div>
