@@ -515,7 +515,7 @@ function SkeletonProfile() {
 }
 
 /* ======================= SHARE CARD ======================= */
-function ShareCard({ entry, onClose }) {
+function ShareCard({ entry, period, onClose }) {
   const canvasRef = useRef(null);
   const [copied, setCopied] = useState(false);
 
@@ -571,6 +571,19 @@ function ShareCard({ entry, onClose }) {
     ctx.font = "12px sans-serif";
     ctx.fillText("hiscore.me", W - 108, 36);
 
+    // Period badge
+    const periodTag = period === "24h" ? "24H" : period === "7d" ? "7D" : period === "30d" ? "30D" : "ALL TIME";
+    ctx.font = "bold 10px sans-serif";
+    const tagW = ctx.measureText(periodTag).width + 12;
+    const tagX = W - 108;
+    const tagY = 48;
+    ctx.fillStyle = "#e5432e";
+    ctx.beginPath();
+    ctx.roundRect(tagX, tagY, tagW, 18, 4);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(periodTag, tagX + 6, tagY + 13);
+
     // Player name
     ctx.fillStyle = "#ffffff";
     ctx.font = "bold 24px sans-serif";
@@ -589,7 +602,8 @@ function ShareCard({ entry, onClose }) {
 
     ctx.fillStyle = "#71717a";
     ctx.font = "bold 10px sans-serif";
-    ctx.fillText("TOTAL PROFIT", lx, 185);
+    const periodLabel = period === "24h" ? "24H PROFIT" : period === "7d" ? "7D PROFIT" : period === "30d" ? "30D PROFIT" : "TOTAL PROFIT";
+    ctx.fillText(periodLabel, lx, 185);
 
     // Stats row
     const stats = [
@@ -1839,7 +1853,7 @@ export default function HiScore() {
           onShare={setShareCard}
         />
       )}
-      {shareCard && <ShareCard entry={shareCard} onClose={() => setShareCard(null)} />}
+      {shareCard && <ShareCard entry={shareCard} period={period} onClose={() => setShareCard(null)} />}
       {showSubmit && <SubmitWalletModal onClose={() => setShowSubmit(false)} />}
     </div>
     </>
@@ -2093,7 +2107,7 @@ export default function HiScore() {
           </div>
         </div>
       </div>
-      {shareCard && <ShareCard entry={shareCard} onClose={() => setShareCard(null)} />}
+      {shareCard && <ShareCard entry={shareCard} period={period} onClose={() => setShareCard(null)} />}
       {showSubmit && <SubmitWalletModal onClose={() => setShowSubmit(false)} />}
     </div>
     </>
