@@ -492,7 +492,7 @@ function SideProfile({ entry, trades }) {
         <div style={{ maxHeight: 320, overflowY: "auto" }}>
           {myTrades.length === 0 ? (
             <div style={{ padding: 20, textAlign: "center", fontFamily: ff, fontSize: 13, color: K.textMuted }}>No trades yet.</div>
-          ) : myTrades.map((t, i) => (
+          ) : myTrades.slice(0, 5).map((t, i) => (
             <div key={i} style={{
               display: "flex", alignItems: "center", gap: 8, padding: "7px 16px",
               borderBottom: "1px solid " + K.borderLight, fontSize: 12, fontFamily: ff,
