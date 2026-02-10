@@ -1,5 +1,46 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
+/* ======================= LOGO IMAGE ======================= */
+function LogoImage() {
+  const paths = ["/logo.png", "/logo.jpg", "/logo.jpeg", "/logo.webp", "/Logo.png", "/Logo.jpg"];
+  const [src, setSrc] = useState(paths[0]);
+  const [idx, setIdx] = useState(0);
+  const [failed, setFailed] = useState(false);
+
+  const handleError = () => {
+    if (idx + 1 < paths.length) {
+      setIdx(i => i + 1);
+      setSrc(paths[idx + 1]);
+    } else {
+      setFailed(true);
+    }
+  };
+
+  const imgStyle = {
+    width: 100, height: 100,
+    objectFit: "contain",
+    animation: "logoEnter 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards, logoGlow 3s ease 0.8s infinite",
+    marginBottom: 24,
+  };
+
+  if (failed) {
+    // SVG fallback matching the red arrow/star logo
+    return (
+      <div style={{ ...imgStyle, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <svg width="90" height="90" viewBox="0 0 90 90" fill="none">
+          <circle cx="14" cy="62" r="6" fill="#cc0000" />
+          <circle cx="24" cy="48" r="8.5" fill="#cc0000" />
+          <rect x="38" y="14" width="36" height="9" rx="4.5" fill="#cc0000" transform="rotate(0)" />
+          <path d="M74 14 L74 60 L50 38 L58 38 L58 14" fill="#cc0000" />
+          <path d="M50 38 L40 50 L46 42 Z" fill="#cc0000" />
+        </svg>
+      </div>
+    );
+  }
+
+  return <img src={src} alt="HiScore" onError={handleError} style={imgStyle} />;
+}
+
 /* ======================= FIRE LOADING SCREEN ======================= */
 function FireLoadingScreen({ onFinished }) {
   const [fadeOut, setFadeOut] = useState(false);
@@ -79,7 +120,7 @@ function FireLoadingScreen({ onFinished }) {
         pointerEvents: "none",
       }} />
 
-      {/* Red fire particles - softer on white bg */}
+      {/* Red fire particles floating upward from center */}
       {Array.from({ length: 16 }, (_, i) => {
         const left = 38 + Math.random() * 24;
         const delay = Math.random() * 2.5;
@@ -91,7 +132,7 @@ function FireLoadingScreen({ onFinished }) {
           <div key={i} style={{
             position: "absolute",
             left: left + "%",
-            bottom: "35%",
+            top: "52%",
             width: size,
             height: size,
             borderRadius: "50%",
@@ -112,7 +153,7 @@ function FireLoadingScreen({ onFinished }) {
           <div key={"e" + i} style={{
             position: "absolute",
             left: left + "%",
-            bottom: "40%",
+            top: "48%",
             width: 2, height: 2,
             borderRadius: "50%",
             background: "#cc0000",
@@ -123,17 +164,8 @@ function FireLoadingScreen({ onFinished }) {
 
       {/* Main content */}
       <div style={{ position: "relative", zIndex: 2, textAlign: "center" }}>
-        {/* Logo image */}
-        <img
-          src="/logo.png"
-          alt="HiScore"
-          style={{
-            width: 100, height: 100,
-            objectFit: "contain",
-            animation: "logoEnter 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards, logoGlow 3s ease 0.8s infinite",
-            marginBottom: 24,
-          }}
-        />
+        {/* Logo image - tries multiple paths */}
+        <LogoImage />
 
         {/* HISCORE text */}
         <div style={{
