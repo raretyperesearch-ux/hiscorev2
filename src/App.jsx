@@ -1540,26 +1540,21 @@ function MobileLiveFeed({ trades, liveMin, setLiveMin }) {
         const buy = t.direction === "buy";
         return (
           <div key={i} style={{
-            display: "grid", gridTemplateColumns: "50px 1fr 1fr 70px",
-            alignItems: "center", padding: "10px 16px", gap: 8,
-            borderBottom: "1px solid " + K.borderLight, fontSize: 12,
+            display: "flex", alignItems: "center", padding: "8px 12px", gap: 6,
+            borderBottom: "1px solid " + K.borderLight, fontSize: 11,
           }}>
-            <span style={{ fontFamily: mono, fontSize: 10, color: K.cyan }}>{ago(t.traded_at)}</span>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <img src={AVATARS[Math.abs(t.wallet.avi) % 10]} alt="" style={{ width: 24, height: 24, imageRendering: "pixelated", borderRadius: 6 }} />
-              <span style={{ fontFamily: ff, fontSize: 12, fontWeight: 500, color: K.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.wallet.label}</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <span style={{
-                fontFamily: ff, fontSize: 9, fontWeight: 600,
-                color: buy ? K.profit : K.loss,
-                background: buy ? K.profitBg : K.lossBg,
-                padding: "1px 4px", borderRadius: 3,
-              }}>{buy ? "B" : "S"}</span>
-              <span onClick={() => window.open(WALLET_XYZ_REF, "_blank")} style={{ fontFamily: ff, fontSize: 12, fontWeight: 500, color: K.accent, cursor: "pointer", textDecoration: "none" }}>{t.token_symbol}</span>
-            </div>
+            <span style={{ fontFamily: mono, fontSize: 9, color: K.cyan, width: 28, flexShrink: 0 }}>{ago(t.traded_at).replace(" ago","")}</span>
+            <img src={AVATARS[Math.abs(t.wallet.avi) % 10]} alt="" style={{ width: 20, height: 20, imageRendering: "pixelated", borderRadius: 4, flexShrink: 0 }} />
+            <span style={{ fontFamily: ff, fontSize: 11, fontWeight: 500, color: K.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0, flex: 1 }}>{t.wallet.label}</span>
             <span style={{
-              fontFamily: mono, fontSize: 12, fontWeight: 600, textAlign: "right",
+              fontFamily: ff, fontSize: 8, fontWeight: 700, flexShrink: 0,
+              color: buy ? K.profit : K.loss,
+              background: buy ? K.profitBg : K.lossBg,
+              padding: "1px 3px", borderRadius: 2, lineHeight: 1.3,
+            }}>{buy ? "B" : "S"}</span>
+            <span onClick={() => window.open(WALLET_XYZ_REF, "_blank")} style={{ fontFamily: ff, fontSize: 11, fontWeight: 600, color: K.accent, cursor: "pointer", flexShrink: 0 }}>{t.token_symbol}</span>
+            <span style={{
+              fontFamily: mono, fontSize: 11, fontWeight: 600, textAlign: "right", flexShrink: 0, marginLeft: "auto",
               color: buy ? K.profit : K.loss,
             }}>{t.usd_amount > 0 ? fmt(t.usd_amount) : (buy ? "BUY" : "SELL")}</span>
           </div>
