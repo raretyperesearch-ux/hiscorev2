@@ -178,6 +178,7 @@ const STYLES = [
   "::-webkit-scrollbar-thumb:hover { background:#a1a1aa; }",
   ".tap-scale { transition: transform 0.1s ease; }",
   ".tap-scale:active { transform: scale(0.97); }",
+  "@keyframes tickerScroll { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }",
 ].join("\n");
 
 const ff = "'Geist Sans', 'Geist', -apple-system, sans-serif";
@@ -605,6 +606,67 @@ function TokenIcon({ address, symbol, size = 28 }) {
   );
 }
 
+/* ======================= TICKER BAR ======================= */
+function Ticker({ leaders, trades }) {
+  const items = [];
+
+  // Recent trades
+  trades.slice(0, 10).forEach(t => {
+    const buy = t.direction === "buy";
+    const big = t.usd_amount >= 1000;
+    items.push({
+      text: (big ? "\ud83d\udd25 " : "") + t.wallet.label + (buy ? " bought " : " sold ") + fmt(t.usd_amount) + " of " + t.token_symbol,
+      color: buy ? K.profit : K.loss,
+    });
+  });
+
+  // Rank changes
+  leaders.forEach((e, i) => {
+    if (e.rankChange && e.rankChange > 0) {
+      items.push({
+        text: "\ud83d\ude80 " + e.wallet.label + " moved up to #" + (i + 1),
+        color: K.profit,
+      });
+    }
+    if (e.streak >= 3) {
+      items.push({
+        text: "\ud83d\udd25 " + e.wallet.label + " is on a " + e.streak + "-win streak",
+        color: K.accent,
+      });
+    }
+  });
+
+  if (items.length === 0) return null;
+
+  // Duplicate items for seamless loop
+  const duped = [...items, ...items];
+  const speed = items.length * 4;
+
+  return (
+    <div style={{
+      overflow: "hidden", whiteSpace: "nowrap",
+      background: "#18181b", borderBottom: "1px solid #27272a",
+      height: 28, display: "flex", alignItems: "center",
+      flexShrink: 0,
+    }}>
+      <div style={{
+        display: "inline-flex", gap: 0,
+        animation: `tickerScroll ${speed}s linear infinite`,
+      }}>
+        {duped.map((item, i) => (
+          <span key={i} style={{
+            fontFamily: mono, fontSize: 11, color: item.color,
+            padding: "0 24px", display: "inline-flex", alignItems: "center", gap: 6,
+          }}>
+            <span style={{ opacity: 0.3, color: K.textMuted }}>{"\u2022"}</span>
+            {item.text}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function FeedLine({ trade }) {
   const t = tier(trade.usd_amount);
   const buy = trade.direction === "buy";
@@ -665,16 +727,20 @@ function HiscoresTable({ onSelect, selected, leaders }) {
             animation: "fadeUp 0.3s ease " + (i * 0.03) + "s both",
           }}>
             {/* Rank */}
-            <div style={{
-              width: 22, height: 22, borderRadius: 6, display: "flex",
-              alignItems: "center", justifyContent: "center",
-              background: isTop3 ? medals[i] : K.bg,
-              border: isTop3 ? "none" : "1px solid " + K.border,
-            }}>
-              <span style={{
-                fontFamily: mono, fontSize: 10, fontWeight: 700,
-                color: isTop3 ? "#fff" : K.textMuted,
-              }}>{i + 1}</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <div style={{
+                width: 22, height: 22, borderRadius: 6, display: "flex",
+                alignItems: "center", justifyContent: "center",
+                background: isTop3 ? medals[i] : K.bg,
+                border: isTop3 ? "none" : "1px solid " + K.border,
+              }}>
+                <span style={{
+                  fontFamily: mono, fontSize: 10, fontWeight: 700,
+                  color: isTop3 ? "#fff" : K.textMuted,
+                }}>{i + 1}</span>
+              </div>
+              {e.rankChange > 0 && <span style={{ fontFamily: mono, fontSize: 9, fontWeight: 700, color: K.profit }}>{"\u2191" + e.rankChange}</span>}
+              {e.rankChange < 0 && <span style={{ fontFamily: mono, fontSize: 9, fontWeight: 700, color: K.loss }}>{"\u2193" + Math.abs(e.rankChange)}</span>}
             </div>
 
             {/* Player */}
@@ -958,13 +1024,17 @@ function MobileTable({ leaders, onSelect, selected }) {
             background: active ? K.accentLight : isTop3 ? medalBgs[i] : "transparent",
             animation: "fadeUp 0.3s ease " + (i * 0.03) + "s both",
           }}>
-            <div style={{
-              width: 22, height: 22, borderRadius: 6, display: "flex",
-              alignItems: "center", justifyContent: "center",
-              background: isTop3 ? medals[i] : K.bg,
-              border: isTop3 ? "none" : "1px solid " + K.border,
-            }}>
-              <span style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, color: isTop3 ? "#fff" : K.textMuted }}>{i + 1}</span>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
+              <div style={{
+                width: 22, height: 22, borderRadius: 6, display: "flex",
+                alignItems: "center", justifyContent: "center",
+                background: isTop3 ? medals[i] : K.bg,
+                border: isTop3 ? "none" : "1px solid " + K.border,
+              }}>
+                <span style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, color: isTop3 ? "#fff" : K.textMuted }}>{i + 1}</span>
+              </div>
+              {e.rankChange > 0 && <span style={{ fontFamily: mono, fontSize: 8, fontWeight: 700, color: K.profit, lineHeight: 1 }}>{"\u2191" + e.rankChange}</span>}
+              {e.rankChange < 0 && <span style={{ fontFamily: mono, fontSize: 8, fontWeight: 700, color: K.loss, lineHeight: 1 }}>{"\u2193" + Math.abs(e.rankChange)}</span>}
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, overflow: "hidden" }}>
               <div style={{
@@ -1288,6 +1358,7 @@ export default function HiScore() {
   const [showSubmit, setShowSubmit] = useState(false);
   const feedRef = useRef(null);
   const firstLoad = useRef(true);
+  const prevRanks = useRef({});
 
   const handleSelect = useCallback((e) => {
     setSelected(e);
@@ -1301,6 +1372,15 @@ export default function HiScore() {
         if (!res.ok) throw new Error("HTTP " + res.status);
         const data = await res.json();
         const { leaders: ld, trades: tr } = mapLeaderboard(data);
+        // Compute rank changes
+        ld.forEach((e, i) => {
+          const prev = prevRanks.current[e.wallet.id];
+          e.rankChange = prev !== undefined ? prev - i : 0;
+        });
+        // Store current ranks for next comparison
+        const newRanks = {};
+        ld.forEach((e, i) => { newRanks[e.wallet.id] = i; });
+        prevRanks.current = newRanks;
         setLeaders(ld);
         setTrades(tr);
         if (ld.length > 0 && firstLoad.current) {
@@ -1346,6 +1426,8 @@ export default function HiScore() {
           animation: "gradientShift 3s ease infinite",
         }} />
       </header>
+
+      <Ticker leaders={leaders} trades={trades} />
 
       {/* Mobile Content */}
       <div style={{ flex: 1, overflowY: "auto", background: K.white }}>
@@ -1493,6 +1575,8 @@ export default function HiScore() {
           animation: "gradientShift 3s ease infinite",
         }} />
       </header>
+
+      <Ticker leaders={leaders} trades={trades} />
 
       {/* ===== BODY ===== */}
       <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
