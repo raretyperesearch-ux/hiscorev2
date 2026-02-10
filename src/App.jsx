@@ -1684,7 +1684,7 @@ export default function HiScore() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await fetch(API_BASE + "/leaderboard?period=" + period);
+        const res = await fetch(API_BASE + "/leaderboard?period=" + period + "&limit=500");
         if (!res.ok) throw new Error("HTTP " + res.status);
         const data = await res.json();
         const { leaders: ld, trades: tr } = mapLeaderboard(data);
