@@ -1059,7 +1059,7 @@ function SideProfile({ entry, trades, onShare }) {
 
   const w = entry.wallet;
   const pnlPos = entry.pnl >= 0;
-  const myTrades = (trades || []).filter(t => t.wallet.id === w.id);
+  const myTrades = (trades || []).slice(0, 20);
 
   return (
     <div style={{ overflowY: "auto", height: "100%", padding: 16 }}>
@@ -1215,7 +1215,7 @@ function SideProfile({ entry, trades, onShare }) {
         <div style={{ maxHeight: 320, overflowY: "auto" }}>
           {myTrades.length === 0 ? (
             <div style={{ padding: 20, textAlign: "center", fontFamily: ff, fontSize: 13, color: K.textMuted }}>No trades yet.</div>
-          ) : myTrades.slice(0, 5).map((t, i) => (
+          ) : myTrades.slice(0, 10).map((t, i) => (
             <div key={i} style={{
               display: "flex", alignItems: "center", gap: 8, padding: "7px 16px",
               borderBottom: "1px solid " + K.borderLight, fontSize: 12, fontFamily: ff,
@@ -1311,7 +1311,7 @@ function MobileProfileSheet({ entry, trades, onClose, onShare }) {
   if (!entry) return null;
   const w = entry.wallet;
   const pnlPos = entry.pnl >= 0;
-  const myTrades = (trades || []).filter(t => t.wallet.id === w.id).slice(0, 20);
+  const myTrades = (trades || []).slice(0, 20);
   const [tab, setTab] = useState(0); // 0=overview, 1=trades, 2=holdings
   const touchStart = useRef(null);
   const touchEnd = useRef(null);
@@ -1637,6 +1637,7 @@ export default function HiScore() {
   const setTab = (t) => { window.location.hash = t; setTabRaw(t); };
   const [selected, setSelected] = useState(null);
   const [mobileProfile, setMobileProfile] = useState(null);
+  const [traderTrades, setTraderTrades] = useState([]);
   const [leaders, setLeaders] = useState([]);
   const [trades, setTrades] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1670,6 +1671,14 @@ export default function HiScore() {
   const handleSelect = useCallback((e) => {
     setSelected(e);
     if (isMobile) setMobileProfile(e);
+    // Fetch this trader's trades
+    setTraderTrades([]);
+    if (e && e.wallet && e.wallet.addr) {
+      fetch(API_BASE + "/leaderboard?wallet=" + e.wallet.addr)
+        .then(r => r.json())
+        .then(d => { if (d.recent_trades) setTraderTrades(d.recent_trades); })
+        .catch(() => {});
+    }
   }, [isMobile]);
 
   useEffect(() => {
@@ -1825,8 +1834,8 @@ export default function HiScore() {
       {mobileProfile && (
         <MobileProfileSheet
           entry={mobileProfile}
-          trades={trades}
-          onClose={() => setMobileProfile(null)}
+          trades={traderTrades}
+          onClose={() => { setMobileProfile(null); setTraderTrades([]); }}
           onShare={setShareCard}
         />
       )}
@@ -2075,7 +2084,7 @@ export default function HiScore() {
           display: "flex", flexDirection: "column",
           background: K.bg,
         }}>
-          <SideProfile entry={selected} trades={trades} onShare={setShareCard} />
+          <SideProfile entry={selected} trades={traderTrades} onShare={setShareCard} />
           <div style={{ marginTop: "auto", padding: "12px 20px", borderTop: "1px solid " + K.borderLight, textAlign: "center" }}>
             <span onClick={() => window.open(WALLET_XYZ_REF, "_blank")} style={{
               fontFamily: ff, fontSize: 11, color: K.textMuted, cursor: "pointer",
