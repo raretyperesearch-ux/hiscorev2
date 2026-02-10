@@ -68,8 +68,9 @@ function mapLeaderboard(apiData) {
     wr: e.stats.win_rate || 0,
     streak: e.stats.current_streak || 0,
     best: e.stats.best_streak || 0,
+    bestTrade: e.stats.best_trade || 0,
+    balance: e.stats.balance_usd || 0,
     trades: e.stats.total_trades || 0,
-    vol: e.stats.total_volume || 0,
     pct: Math.min(99, Math.max(5, (e.stats.win_rate || 0) * 1.5)),
     badges: [],
     pnl24h: 0,
@@ -373,7 +374,7 @@ function ShareCard({ entry, onClose }) {
     const stats = [
       { l: "WIN RATE", v: entry.wr.toFixed(1) + "%" },
       { l: "TRADES", v: String(entry.trades) },
-      { l: "VOLUME", v: fmt(entry.vol) },
+      { l: "BALANCE", v: fmt(entry.balance || 0) },
     ];
     stats.forEach((s, i) => {
       const x = lx + i * 160;
@@ -721,8 +722,8 @@ function FeedLine({ trade }) {
 
 /* ======================= HISCORES TABLE ======================= */
 function HiscoresTable({ onSelect, selected, leaders }) {
-  const cols = "40px 2fr 110px 100px 70px 52px";
-  const headers = ["#", "Player", "Profit", "Volume", "Win %", ""];
+  const cols = "40px 2fr 120px 70px 52px";
+  const headers = ["#", "Player", "Profit", "Win %", ""];
 
   return (
     <div>
@@ -807,9 +808,6 @@ function HiscoresTable({ onSelect, selected, leaders }) {
                 padding: "2px 8px", borderRadius: 6,
               }}>{(e.pnl >= 0 ? "+" : "") + fmt(e.pnl)}</span>
             </div>
-
-            {/* Volume */}
-            <span style={{ fontFamily: mono, fontSize: 12, color: K.textMuted, textAlign: "right" }}>{fmt(e.vol)}</span>
 
             {/* Win% */}
             <span style={{
@@ -910,7 +908,7 @@ function SideProfile({ entry, trades, onShare }) {
         {[
           { l: "Win Rate", v: entry.wr + "%", c: entry.wr >= 55 ? K.profit : K.text },
           { l: "Trades", v: entry.trades, c: K.text },
-          { l: "Volume", v: fmt(entry.vol), c: K.accent },
+          { l: "Balance", v: fmt(entry.balance || 0), c: K.accent },
         ].map((s, i) => (
           <Tile key={i} hover={false} style={{ padding: "12px 8px", textAlign: "center" }}>
             <div style={{ fontFamily: ff, fontSize: 10, color: K.textMuted, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.04em" }}>{s.l}</div>
@@ -1160,7 +1158,7 @@ function MobileProfileSheet({ entry, trades, onClose, onShare }) {
             {[
               { l: "Win Rate", v: entry.wr + "%", c: entry.wr >= 55 ? K.profit : K.text },
               { l: "Trades", v: entry.trades, c: K.text },
-              { l: "Volume", v: fmt(entry.vol), c: K.accent },
+              { l: "Balance", v: fmt(entry.balance || 0), c: K.accent },
             ].map((s, i) => (
               <Tile key={i} hover={false} style={{ padding: "10px 6px", textAlign: "center" }}>
                 <div style={{ fontFamily: ff, fontSize: 9, color: K.textMuted, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.04em" }}>{s.l}</div>
