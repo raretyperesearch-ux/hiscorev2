@@ -589,13 +589,14 @@ export default function HiScore() {
   const [leaders, setLeaders] = useState([]);
   const [trades, setTrades] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [period, setPeriod] = useState("all");
   const feedRef = useRef(null);
   const firstLoad = useRef(true);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await fetch(API_BASE + "/leaderboard");
+        const res = await fetch(API_BASE + "/leaderboard?period=" + period);
         if (!res.ok) throw new Error("HTTP " + res.status);
         const data = await res.json();
         const { leaders: ld, trades: tr } = mapLeaderboard(data);
@@ -613,7 +614,7 @@ export default function HiScore() {
     fetchData();
     const iv = setInterval(fetchData, 30000);
     return () => clearInterval(iv);
-  }, []);
+  }, [period]);
 
   useEffect(() => {
     if (feedRef.current) feedRef.current.scrollTop = feedRef.current.scrollHeight;
@@ -680,15 +681,15 @@ export default function HiScore() {
                   <h2 style={{ fontSize: 20, fontWeight: 700, color: K.text, letterSpacing: "0.08em", margin: 0 }}>HISCORE</h2>
                   <p style={{ fontSize: 13, color: K.textMuted, marginTop: 4 }}>Top traders ranked by all-time profit &bull; Base Chain</p>
                   <div style={{ display: "flex", gap: 4, marginTop: 12 }}>
-                    {["Overall", "24h", "7d", "30d"].map((p, i) => (
-                      <button key={p} style={{
+                    {[{id:"all",label:"Overall"},{id:"24h",label:"24h"},{id:"7d",label:"7d"},{id:"30d",label:"30d"}].map((p) => (
+                      <button key={p.id} onClick={() => { setPeriod(p.id); setLoading(true); }} style={{
                         fontFamily: ff, fontSize: 12, fontWeight: 500,
-                        color: i === 0 ? K.text : K.textMuted,
-                        background: i === 0 ? K.bg : "transparent",
-                        border: "1px solid " + (i === 0 ? K.border : "transparent"),
+                        color: period === p.id ? K.text : K.textMuted,
+                        background: period === p.id ? K.bg : "transparent",
+                        border: "1px solid " + (period === p.id ? K.border : "transparent"),
                         borderRadius: 8, padding: "5px 12px", cursor: "pointer",
-                        boxShadow: i === 0 ? cardShadow : "none",
-                      }}>{p}</button>
+                        boxShadow: period === p.id ? cardShadow : "none",
+                      }}>{p.label}</button>
                     ))}
                   </div>
                 </div>
