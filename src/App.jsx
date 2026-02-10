@@ -414,6 +414,165 @@ function ShareCard({ entry, onClose }) {
   );
 }
 
+/* ======================= SUBMIT WALLET MODAL ======================= */
+const SUPABASE_URL = "https://ppqbosrweabdqayawhbw.supabase.co";
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwcWJvc3J3ZWFiZHFheWF3aGJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0MzY3ODQsImV4cCI6MjA4NjAxMjc4NH0.DBP_rFg3fZZUcYrVVHU3riZuuiF5AWcW1Ickxlud7EQ";
+
+function SubmitWalletModal({ onClose }) {
+  const [addr, setAddr] = useState("");
+  const [label, setLabel] = useState("");
+  const [twitter, setTwitter] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [result, setResult] = useState(null); // "success" | "duplicate" | "error"
+
+  const isValidAddr = /^0x[a-fA-F0-9]{40}$/.test(addr.trim());
+
+  const handleSubmit = async () => {
+    if (!isValidAddr) return;
+    setSubmitting(true);
+    try {
+      const res = await fetch(SUPABASE_URL + "/rest/v1/wallet_submissions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SUPABASE_ANON,
+          "Authorization": "Bearer " + SUPABASE_ANON,
+          "Prefer": "return=minimal",
+        },
+        body: JSON.stringify({
+          wallet_address: addr.trim().toLowerCase(),
+          wallet_label: label.trim() || null,
+          twitter_handle: twitter.trim().replace(/^@/, "") || null,
+        }),
+      });
+      if (res.ok || res.status === 201) setResult("success");
+      else if (res.status === 409) setResult("duplicate");
+      else setResult("error");
+    } catch { setResult("error"); }
+    setSubmitting(false);
+  };
+
+  const inputStyle = {
+    width: "100%", padding: "12px 14px", background: K.bg,
+    border: "1px solid " + K.border, borderRadius: 10,
+    fontFamily: ff, fontSize: 14, color: K.text, outline: "none",
+    transition: "border-color 0.15s",
+  };
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 2000 }} onClick={onClose}>
+      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)", animation: "fadeIn 0.2s ease" }} />
+      <div onClick={e => e.stopPropagation()} style={{
+        position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
+        background: K.white, borderRadius: 20, padding: 28, width: "min(400px, 90vw)",
+        boxShadow: "0 24px 80px rgba(0,0,0,0.15)", animation: "fadeUp 0.3s ease",
+      }}>
+        {result === "success" ? (
+          <div style={{ textAlign: "center", padding: "20px 0" }}>
+            <div style={{ fontSize: 48, marginBottom: 12 }}>{"\u2705"}</div>
+            <div style={{ fontFamily: ff, fontSize: 20, fontWeight: 700, color: K.text, marginBottom: 8 }}>Wallet Submitted!</div>
+            <div style={{ fontFamily: ff, fontSize: 14, color: K.textSec, lineHeight: 1.6 }}>
+              We'll review and add it to the leaderboard soon. Follow <span style={{ color: K.accent, fontWeight: 600 }}>@HiScoreBase</span> for updates.
+            </div>
+            <button onClick={onClose} style={{
+              fontFamily: ff, fontSize: 14, fontWeight: 600, marginTop: 20,
+              color: K.white, background: K.accent, border: "none", borderRadius: 10,
+              padding: "12px 32px", cursor: "pointer",
+            }}>Done</button>
+          </div>
+        ) : result === "duplicate" ? (
+          <div style={{ textAlign: "center", padding: "20px 0" }}>
+            <div style={{ fontSize: 48, marginBottom: 12 }}>{"\u26a0\ufe0f"}</div>
+            <div style={{ fontFamily: ff, fontSize: 18, fontWeight: 700, color: K.text, marginBottom: 8 }}>Already Submitted</div>
+            <div style={{ fontFamily: ff, fontSize: 14, color: K.textSec }}>This wallet is already pending review.</div>
+            <button onClick={onClose} style={{
+              fontFamily: ff, fontSize: 14, fontWeight: 600, marginTop: 20,
+              color: K.white, background: K.accent, border: "none", borderRadius: 10,
+              padding: "12px 32px", cursor: "pointer",
+            }}>OK</button>
+          </div>
+        ) : (
+          <>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+              <div>
+                <div style={{ fontFamily: ff, fontSize: 20, fontWeight: 700, color: K.text }}>Submit a Wallet</div>
+                <div style={{ fontFamily: ff, fontSize: 13, color: K.textSec, marginTop: 2 }}>Add a trader to the HiScore leaderboard</div>
+              </div>
+              <button onClick={onClose} style={{
+                width: 32, height: 32, borderRadius: 8, border: "1px solid " + K.border,
+                background: K.white, cursor: "pointer", fontFamily: ff, fontSize: 16, color: K.textMuted,
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>{"\u2715"}</button>
+            </div>
+
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ fontFamily: ff, fontSize: 12, fontWeight: 600, color: K.textSec, display: "block", marginBottom: 6 }}>WALLET ADDRESS *</label>
+              <input
+                value={addr} onChange={e => setAddr(e.target.value)}
+                placeholder="0x..."
+                style={{
+                  ...inputStyle,
+                  fontFamily: mono, fontSize: 13,
+                  borderColor: addr && !isValidAddr ? K.loss : K.border,
+                }}
+                onFocus={e => e.target.style.borderColor = K.accent}
+                onBlur={e => e.target.style.borderColor = addr && !isValidAddr ? K.loss : K.border}
+              />
+              {addr && !isValidAddr && (
+                <div style={{ fontFamily: ff, fontSize: 11, color: K.loss, marginTop: 4 }}>Enter a valid Base address (0x...)</div>
+              )}
+            </div>
+
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ fontFamily: ff, fontSize: 12, fontWeight: 600, color: K.textSec, display: "block", marginBottom: 6 }}>LABEL / NAME</label>
+              <input
+                value={label} onChange={e => setLabel(e.target.value)}
+                placeholder="e.g. DegenerateApe"
+                style={inputStyle}
+                onFocus={e => e.target.style.borderColor = K.accent}
+                onBlur={e => e.target.style.borderColor = K.border}
+              />
+            </div>
+
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ fontFamily: ff, fontSize: 12, fontWeight: 600, color: K.textSec, display: "block", marginBottom: 6 }}>TWITTER / X</label>
+              <input
+                value={twitter} onChange={e => setTwitter(e.target.value)}
+                placeholder="@handle"
+                style={inputStyle}
+                onFocus={e => e.target.style.borderColor = K.accent}
+                onBlur={e => e.target.style.borderColor = K.border}
+              />
+            </div>
+
+            {result === "error" && (
+              <div style={{ fontFamily: ff, fontSize: 13, color: K.loss, marginBottom: 14, textAlign: "center" }}>Something went wrong. Try again.</div>
+            )}
+
+            <button
+              onClick={handleSubmit}
+              disabled={!isValidAddr || submitting}
+              style={{
+                width: "100%", padding: "14px 0",
+                fontFamily: ff, fontSize: 15, fontWeight: 700,
+                color: K.white,
+                background: isValidAddr ? K.accent : K.textFaint,
+                border: "none", borderRadius: 12, cursor: isValidAddr ? "pointer" : "not-allowed",
+                opacity: submitting ? 0.7 : 1,
+                transition: "all 0.15s ease",
+              }}
+            >{submitting ? "Submitting..." : "Submit Wallet"}</button>
+
+            <div style={{ fontFamily: ff, fontSize: 11, color: K.textMuted, textAlign: "center", marginTop: 12, lineHeight: 1.5 }}>
+              Base chain only. Submissions are reviewed before appearing on the leaderboard.
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function FeedLine({ trade }) {
   const t = tier(trade.usd_amount);
   const buy = trade.direction === "buy";
@@ -1102,6 +1261,7 @@ export default function HiScore() {
   const [liveMin, setLiveMin] = useState(0);
   const [feedFilter, setFeedFilter] = useState("all");
   const [shareCard, setShareCard] = useState(null);
+  const [showSubmit, setShowSubmit] = useState(false);
   const feedRef = useRef(null);
   const firstLoad = useRef(true);
 
@@ -1227,6 +1387,15 @@ export default function HiScore() {
             <span style={{ fontSize: 10, fontWeight: 600 }}>{t.label}</span>
           </button>
         ))}
+        <button onClick={() => setShowSubmit(true)} style={{
+          flex: 1, display: "flex", flexDirection: "column",
+          alignItems: "center", justifyContent: "center",
+          padding: "10px 0 8px", gap: 2, border: "none", cursor: "pointer",
+          background: "transparent", color: K.accent, fontFamily: ff,
+        }}>
+          <span style={{ fontSize: 18, lineHeight: 1, fontWeight: 700 }}>+</span>
+          <span style={{ fontSize: 10, fontWeight: 600 }}>Submit</span>
+        </button>
       </nav>
 
       {/* Mobile Profile Sheet */}
@@ -1239,6 +1408,7 @@ export default function HiScore() {
         />
       )}
       {shareCard && <ShareCard entry={shareCard} onClose={() => setShareCard(null)} />}
+      {showSubmit && <SubmitWalletModal onClose={() => setShowSubmit(false)} />}
     </div>
   );
 
@@ -1287,6 +1457,11 @@ export default function HiScore() {
         </div>
 
         <div style={{ flex: 1 }} />
+        <button onClick={() => setShowSubmit(true)} style={{
+          fontFamily: ff, fontSize: 12, fontWeight: 600,
+          color: K.white, background: K.accent, border: "none", borderRadius: 7,
+          padding: "5px 14px", cursor: "pointer", transition: "opacity 0.15s",
+        }} onMouseEnter={e => e.currentTarget.style.opacity = "0.85"} onMouseLeave={e => e.currentTarget.style.opacity = "1"}>+ Submit Wallet</button>
         <div style={{
           position: "absolute", bottom: 0, left: 0, right: 0, height: 2,
           background: "linear-gradient(90deg, " + K.accent + ", #f87171, " + K.accent + ")",
@@ -1483,6 +1658,7 @@ export default function HiScore() {
         </div>
       </div>
       {shareCard && <ShareCard entry={shareCard} onClose={() => setShareCard(null)} />}
+      {showSubmit && <SubmitWalletModal onClose={() => setShowSubmit(false)} />}
     </div>
   );
 }
