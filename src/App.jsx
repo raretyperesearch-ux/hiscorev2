@@ -285,6 +285,7 @@ function mapLeaderboard(apiData) {
       label: e.wallet.label || shortAddr(e.wallet.address),
       addr: e.wallet.address,
       avi: i % 10,
+      avatar_url: e.wallet.avatar_url || null,
     },
     pnl: e.stats.total_pnl || 0,
     wr: e.stats.win_rate || 0,
@@ -308,6 +309,7 @@ function mapLeaderboard(apiData) {
       label: t.wallet?.label || shortAddr(t.wallet?.address),
       addr: t.wallet?.address || "",
       avi: leaders.findIndex(l => l.wallet.id === t.wallet?.address) % 10,
+      avatar_url: t.wallet?.avatar_url || null,
     },
     direction: t.direction,
     token_symbol: t.token_symbol,
@@ -1013,7 +1015,7 @@ function HiscoresTable({ onSelect, selected, leaders }) {
                 display: "flex", alignItems: "center", justifyContent: "center",
                 overflow: "hidden",
               }}>
-                <img src={AVATARS[e.wallet.avi || 0]} alt="" style={{ width: 28, height: 28, imageRendering: "pixelated" }} />
+                <img src={e.wallet.avatar_url || AVATARS[e.wallet.avi || 0]} alt="" style={{ width: 28, height: 28, borderRadius: e.wallet.avatar_url ? 8 : 0, imageRendering: e.wallet.avatar_url ? "auto" : "pixelated", objectFit: "cover" }} />
               </div>
               <div style={{ minWidth: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -1090,7 +1092,7 @@ function SideProfile({ entry, trades, onShare }) {
             width: "100%", height: "100%", borderRadius: 15, background: K.white,
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
-            <img src={AVATARS[w.avi || 0]} alt="" style={{ width: 48, height: 48, imageRendering: "pixelated" }} />
+            <img src={w.avatar_url || AVATARS[w.avi || 0]} alt="" style={{ width: 48, height: 48, borderRadius: w.avatar_url ? 12 : 0, imageRendering: w.avatar_url ? "auto" : "pixelated", objectFit: "cover" }} />
           </div>
         </div>
         <div style={{ fontFamily: ff, fontSize: 18, fontWeight: 700, color: K.text }}>{w.label}</div>
@@ -1300,7 +1302,7 @@ function MobileTable({ leaders, onSelect, selected }) {
                 border: "1px solid " + K.border, background: K.bg,
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}>
-                <img src={AVATARS[e.wallet.avi || 0]} alt="" style={{ width: 26, height: 26, imageRendering: "pixelated" }} />
+                <img src={e.wallet.avatar_url || AVATARS[e.wallet.avi || 0]} alt="" style={{ width: 26, height: 26, borderRadius: e.wallet.avatar_url ? 8 : 0, imageRendering: e.wallet.avatar_url ? "auto" : "pixelated", objectFit: "cover" }} />
               </div>
               <div style={{ minWidth: 0 }}>
                 <div style={{
@@ -1375,7 +1377,7 @@ function MobileProfileSheet({ entry, trades, onClose, onShare }) {
                 width: "100%", height: "100%", borderRadius: 12, background: K.white,
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}>
-                <img src={AVATARS[w.avi || 0]} alt="" style={{ width: 36, height: 36, imageRendering: "pixelated" }} />
+                <img src={w.avatar_url || AVATARS[w.avi || 0]} alt="" style={{ width: 36, height: 36, borderRadius: w.avatar_url ? 10 : 0, imageRendering: w.avatar_url ? "auto" : "pixelated", objectFit: "cover" }} />
               </div>
             </div>
             <div style={{ flex: 1 }}>
@@ -1559,7 +1561,7 @@ function MobileLiveFeed({ trades, liveMin, setLiveMin }) {
             borderBottom: "1px solid " + K.borderLight, fontSize: 11,
           }}>
             <span style={{ fontFamily: mono, fontSize: 9, color: K.cyan, width: 28, flexShrink: 0 }}>{ago(t.traded_at).replace(" ago","")}</span>
-            <img src={AVATARS[Math.abs(t.wallet.avi) % 10]} alt="" style={{ width: 20, height: 20, imageRendering: "pixelated", borderRadius: 4, flexShrink: 0 }} />
+            <img src={t.wallet.avatar_url || AVATARS[Math.abs(t.wallet.avi) % 10]} alt="" style={{ width: 20, height: 20, borderRadius: t.wallet.avatar_url ? 4 : 4, imageRendering: t.wallet.avatar_url ? "auto" : "pixelated", objectFit: "cover", flexShrink: 0 }} />
             <span style={{ fontFamily: ff, fontSize: 11, fontWeight: 500, color: K.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0, flex: 1 }}>{t.wallet.label}</span>
             <span style={{
               fontFamily: ff, fontSize: 8, fontWeight: 700, flexShrink: 0,
@@ -1622,7 +1624,7 @@ function SearchPanel({ onSelect, leaders }) {
               border: "1px solid " + K.border,
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
-              <img src={AVATARS[w.avi || 0]} alt="" style={{ width: 22, height: 22, imageRendering: "pixelated" }} />
+              <img src={w.avatar_url || AVATARS[w.avi || 0]} alt="" style={{ width: 22, height: 22, borderRadius: w.avatar_url ? 6 : 0, imageRendering: w.avatar_url ? "auto" : "pixelated", objectFit: "cover" }} />
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontFamily: ff, fontSize: 13, fontWeight: 600, color: K.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{w.label}</div>
@@ -2023,7 +2025,7 @@ export default function HiScore() {
                             border: "1px solid " + K.border,
                             display: "flex", alignItems: "center", justifyContent: "center",
                           }}>
-                            <img src={AVATARS[Math.abs(t.wallet.avi || 0) % 10]} alt="" style={{ width: 20, height: 20, imageRendering: "pixelated" }} />
+                            <img src={t.wallet.avatar_url || AVATARS[Math.abs(t.wallet.avi || 0) % 10]} alt="" style={{ width: 20, height: 20, borderRadius: t.wallet.avatar_url ? 4 : 0, imageRendering: t.wallet.avatar_url ? "auto" : "pixelated", objectFit: "cover" }} />
                           </div>
                           <span className="live-trader-name" style={{ fontFamily: ff, fontSize: 13, fontWeight: 500, color: K.accent }}>{t.wallet.label}</span>
                         </div>
