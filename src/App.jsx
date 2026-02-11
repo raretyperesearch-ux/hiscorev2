@@ -1661,7 +1661,7 @@ export default function HiScore() {
   const [trades, setTrades] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
-  const [period, setPeriod] = useState("all");
+  const [period, setPeriod] = useState("24h");
   const [liveMin, setLiveMin] = useState(0);
   const [feedFilter, setFeedFilter] = useState("all");
   const [shareCard, setShareCard] = useState(null);
@@ -1784,7 +1784,7 @@ export default function HiScore() {
             }}>
               <p style={{ fontSize: 13, fontWeight: 600, color: K.text, margin: "0 0 10px 0", textAlign: "center", letterSpacing: "-0.01em", lineHeight: 1.3 }}>Top traders ranked by all-time profit on Base</p>
               <div style={{ display: "flex", gap: 4 }}>
-                {[{id:"all",label:"Overall"},{id:"24h",label:"24h"},{id:"7d",label:"7d"},{id:"30d",label:"30d"}].map((p) => (
+                {[{id:"24h",label:"24h"},{id:"7d",label:"7d"},{id:"30d",label:"30d"},{id:"all",label:"Overall"}].map((p) => (
                   <button key={p.id} onClick={() => { setPeriod(p.id); setLoading(true); }} style={{
                     fontFamily: ff, fontSize: 12, fontWeight: 500,
                     color: period === p.id ? K.text : K.textMuted,
@@ -1947,7 +1947,7 @@ export default function HiScore() {
                 }}>
                   <p style={{ fontSize: 18, fontWeight: 600, color: K.text, marginTop: 0, margin: 0, textAlign: "center", lineHeight: 1.4 }}>Top traders ranked by all-time profit on Base</p>
                   <div style={{ display: "flex", gap: 4, marginTop: 12 }}>
-                    {[{id:"all",label:"Overall"},{id:"24h",label:"24h"},{id:"7d",label:"7d"},{id:"30d",label:"30d"}].map((p) => (
+                    {[{id:"24h",label:"24h"},{id:"7d",label:"7d"},{id:"30d",label:"30d"},{id:"all",label:"Overall"}].map((p) => (
                       <button key={p.id} onClick={() => { setPeriod(p.id); setLoading(true); }} style={{
                         fontFamily: ff, fontSize: 12, fontWeight: 500,
                         color: period === p.id ? K.text : K.textMuted,
