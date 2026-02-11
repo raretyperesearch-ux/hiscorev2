@@ -286,6 +286,8 @@ function mapLeaderboard(apiData) {
       addr: e.wallet.address,
       avi: i % 10,
       avatar_url: e.wallet.avatar_url || null,
+      twitter: e.wallet.twitter || null,
+      telegram: e.wallet.telegram || null,
     },
     pnl: e.stats.total_pnl || 0,
     wr: e.stats.win_rate || 0,
@@ -1194,17 +1196,17 @@ function SideProfile({ entry, trades, onShare }) {
         </div>
         <div style={{ padding: 4 }}>
           {[
-            { name: "Twitter / X", handle: "@" + w.label.toLowerCase(), icon: "X", url: "https://x.com/" + w.label.toLowerCase() },
-            { name: "Telegram", handle: "@" + w.label.toLowerCase(), icon: "TG", url: "https://t.me/" + w.label.toLowerCase() },
-            { name: "Farcaster", handle: w.label.toLowerCase() + ".eth", icon: "FC", url: "https://warpcast.com/" + w.label.toLowerCase() },
-          ].map((s, i) => (
+            ...(w.twitter ? [{ name: "Twitter / X", handle: "@" + w.twitter, icon: "X", url: "https://x.com/" + w.twitter }] : []),
+            ...(w.telegram ? [{ name: "Telegram", handle: "@" + w.telegram, icon: "TG", url: "https://t.me/" + w.telegram }] : []),
+            { name: "Basescan", handle: shortAddr(w.addr), icon: "BS", url: "https://basescan.org/address/" + w.addr },
+          ].map((s, i, arr) => (
             <div key={i}
               onClick={() => window.open(s.url, "_blank")}
               onMouseEnter={(ev) => ev.currentTarget.style.background = K.bg}
               onMouseLeave={(ev) => ev.currentTarget.style.background = "transparent"}
               style={{
                 display: "flex", alignItems: "center", gap: 10, padding: "10px 12px",
-                borderBottom: i < 2 ? "1px solid " + K.borderLight : "none",
+                borderBottom: i < arr.length - 1 ? "1px solid " + K.borderLight : "none",
                 cursor: "pointer", transition: "background 0.15s ease",
               }}>
               <div style={{
