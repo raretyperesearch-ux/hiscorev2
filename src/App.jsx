@@ -1968,6 +1968,31 @@ export default function HiScore() {
         const newRanks = {};
         ld.forEach((e, i) => { newRanks[e.wallet.id] = i; });
         prevRanks.current = newRanks;
+
+        // Fetch strategies for all wallets
+        try {
+          const walletAddrs = ld.map(l => l.wallet.addr).filter(Boolean);
+          if (walletAddrs.length > 0) {
+            const stratRes = await fetch(API_BASE + "/get-strategies", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ wallets: walletAddrs }),
+            });
+            if (stratRes.ok) {
+              const stratData = await stratRes.json();
+              const strategiesByWallet = stratData.strategies || {};
+              ld.forEach(leader => {
+                const addr = leader.wallet.addr?.toLowerCase();
+                if (addr && strategiesByWallet[addr]) {
+                  leader.strategies = strategiesByWallet[addr];
+                }
+              });
+            }
+          }
+        } catch (stratErr) {
+          console.warn("Could not fetch strategies:", stratErr);
+        }
+
         setLeaders(ld);
         setTrades(tr);
         if (ld.length > 0 && firstLoad.current) {
