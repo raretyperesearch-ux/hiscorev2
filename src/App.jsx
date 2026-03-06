@@ -1980,9 +1980,23 @@ export default function HiScore() {
             });
             if (stratRes.ok) {
               const stratData = await stratRes.json();
-              const strategiesByWallet = stratData.strategies || {};
+              // Handle both array format and object format
+              let strategiesByWallet = {};
+              const strategies = stratData.strategies || [];
+              if (Array.isArray(strategies)) {
+                // Group array of strategies by wallet_address (lowercase)
+                strategies.forEach(s => {
+                  const addr = (s.wallet_address || "").toLowerCase();
+                  if (!strategiesByWallet[addr]) strategiesByWallet[addr] = [];
+                  strategiesByWallet[addr].push(s);
+                });
+              } else {
+                // Already an object keyed by wallet
+                strategiesByWallet = strategies;
+              }
+              // Match strategies to leaders (case-insensitive)
               ld.forEach(leader => {
-                const addr = leader.wallet.addr?.toLowerCase();
+                const addr = (leader.wallet.addr || "").toLowerCase();
                 if (addr && strategiesByWallet[addr]) {
                   leader.strategies = strategiesByWallet[addr];
                 }
