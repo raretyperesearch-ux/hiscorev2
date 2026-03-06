@@ -288,6 +288,7 @@ function mapLeaderboard(apiData) {
       avatar_url: e.wallet.avatar_url || null,
       twitter: e.wallet.twitter || null,
       telegram: e.wallet.telegram || null,
+      wallet_class: e.wallet.wallet_class || null,
     },
     pnl: e.stats.total_pnl || 0,
     wr: e.stats.win_rate || 0,
@@ -302,6 +303,7 @@ function mapLeaderboard(apiData) {
     xp: Math.abs(e.stats.total_pnl || 0) * 10,
     copiers: 0,
     holdings: e.holdings || [],
+    strategies: e.strategies || [],
     updated_at: e.updated_at,
   }));
   const trades = (apiData.live_trades || []).map((t, i) => ({
@@ -335,6 +337,64 @@ const QUESTS = {
   speed_demon:{name:"Speed Demon",desc:"Flip in under 30s",diff:"Medium"},
 };
 
+/* ======================= STRATEGY BADGES ======================= */
+const STRATEGY_TYPES = {
+  sniper: { label: "Sniper", icon: "\u{1F3AF}", color: "#8b5cf6", desc: "Early token entries" },
+  whale: { label: "Whale", icon: "\u{1F40B}", color: "#0ea5e9", desc: "Large position sizes" },
+  scalper: { label: "Scalper", icon: "\u26A1", color: "#f59e0b", desc: "Quick in-and-out trades" },
+  holder: { label: "Holder", icon: "\u{1F48E}", color: "#10b981", desc: "Long-term positions" },
+  arbitrage: { label: "Arb", icon: "\u{1F504}", color: "#ec4899", desc: "Cross-DEX arbitrage" },
+  mev: { label: "MEV", icon: "\u{1F916}", color: "#ef4444", desc: "MEV extraction" },
+  copytrader: { label: "Copy", icon: "\u{1F465}", color: "#6366f1", desc: "Follows other wallets" },
+  degen: { label: "Degen", icon: "\u{1F525}", color: "#f97316", desc: "High-risk plays" },
+};
+
+const WALLET_CLASSES = {
+  smart_money: { label: "Smart Money", color: "#16a34a" },
+  whale: { label: "Whale", color: "#0ea5e9" },
+  retail: { label: "Retail", color: "#71717a" },
+  bot: { label: "Bot", color: "#8b5cf6" },
+  new: { label: "New", color: "#f59e0b" },
+};
+
+function StrategyBadge({ type, size = "sm" }) {
+  const strategy = STRATEGY_TYPES[type];
+  if (!strategy) return null;
+  const isSmall = size === "sm";
+  return (
+    <span title={strategy.desc} style={{
+      display: "inline-flex", alignItems: "center", gap: isSmall ? 2 : 4,
+      padding: isSmall ? "1px 4px" : "2px 6px",
+      borderRadius: 4,
+      background: strategy.color + "15",
+      border: "1px solid " + strategy.color + "30",
+      fontSize: isSmall ? 9 : 11,
+      fontWeight: 600,
+      color: strategy.color,
+      whiteSpace: "nowrap",
+    }}>
+      <span style={{ fontSize: isSmall ? 8 : 10 }}>{strategy.icon}</span>
+      {!isSmall && strategy.label}
+    </span>
+  );
+}
+
+function StrategyBadges({ strategies, max = 3, size = "sm" }) {
+  if (!strategies || strategies.length === 0) return null;
+  const sorted = [...strategies].sort((a, b) => (b.confidence_score || 0) - (a.confidence_score || 0));
+  const visible = sorted.slice(0, max);
+  const remaining = sorted.length - max;
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 3, flexWrap: "wrap" }}>
+      {visible.map((s, i) => (
+        <StrategyBadge key={s.strategy_type + i} type={s.strategy_type} size={size} />
+      ))}
+      {remaining > 0 && (
+        <span style={{ fontSize: 9, color: "#71717a", fontWeight: 500 }}>+{remaining}</span>
+      )}
+    </div>
+  );
+}
 
 /* ======================= HELPERS ======================= */
 const fmt = (n) => { const a = Math.abs(n), s = n < 0 ? "-" : ""; if (a >= 1e6) return s + "$" + (a / 1e6).toFixed(1) + "M"; if (a >= 1e3) return s + "$" + (a / 1e3).toFixed(1) + "K"; return s + "$" + a.toFixed(0); };
@@ -1033,7 +1093,10 @@ function HiscoresTable({ onSelect, selected, leaders }) {
                     fontFamily: mono, fontSize: 10, color: K.cyan, opacity: 0.6,
                   }}>{ago(lastTrade)}</span>
                 </div>
-                <span onClick={(ev) => { ev.stopPropagation(); window.open("https://basescan.org/address/" + e.wallet.addr, "_blank"); }} style={{ fontFamily: mono, fontSize: 11, color: K.cyan, cursor: "pointer" }} onMouseEnter={(ev) => ev.currentTarget.style.textDecoration = "underline"} onMouseLeave={(ev) => ev.currentTarget.style.textDecoration = "none"}>{shortAddr(e.wallet.addr)}</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
+                  <span onClick={(ev) => { ev.stopPropagation(); window.open("https://basescan.org/address/" + e.wallet.addr, "_blank"); }} style={{ fontFamily: mono, fontSize: 11, color: K.cyan, cursor: "pointer" }} onMouseEnter={(ev) => ev.currentTarget.style.textDecoration = "underline"} onMouseLeave={(ev) => ev.currentTarget.style.textDecoration = "none"}>{shortAddr(e.wallet.addr)}</span>
+                  {e.strategies && e.strategies.length > 0 && <StrategyBadges strategies={e.strategies} max={2} size="sm" />}
+                </div>
               </div>
             </div>
 
@@ -1154,6 +1217,42 @@ function SideProfile({ entry, trades, onShare }) {
           </Tile>
         ))}
       </div>
+
+      {/* Trading Strategies */}
+      {entry.strategies && entry.strategies.length > 0 && (
+        <Tile hover={false} style={{ marginBottom: 10, overflow: "hidden" }}>
+          <div style={{ padding: "12px 16px", borderBottom: "1px solid " + K.borderLight }}>
+            <span style={{ fontFamily: ff, fontSize: 14, fontWeight: 600, color: K.text }}>Trading Strategies</span>
+          </div>
+          <div style={{ padding: 12, display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {entry.strategies.map((s, i) => {
+              const strat = STRATEGY_TYPES[s.strategy_type];
+              if (!strat) return null;
+              return (
+                <div key={i} style={{
+                  display: "flex", alignItems: "center", gap: 8,
+                  padding: "8px 12px", borderRadius: 8,
+                  background: strat.color + "10",
+                  border: "1px solid " + strat.color + "25",
+                }}>
+                  <span style={{ fontSize: 16 }}>{strat.icon}</span>
+                  <div>
+                    <div style={{ fontFamily: ff, fontSize: 12, fontWeight: 600, color: strat.color }}>{strat.label}</div>
+                    <div style={{ fontFamily: ff, fontSize: 10, color: K.textMuted }}>{strat.desc}</div>
+                  </div>
+                  {s.confidence_score && (
+                    <span style={{
+                      fontFamily: mono, fontSize: 10, fontWeight: 600,
+                      color: strat.color, background: strat.color + "20",
+                      padding: "2px 6px", borderRadius: 4, marginLeft: 4,
+                    }}>{Math.round(s.confidence_score * 100)}%</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </Tile>
+      )}
 
       {/* Holdings */}
       <Tile hover={false} style={{ marginBottom: 10, overflow: "hidden" }}>
@@ -1310,10 +1409,13 @@ function MobileTable({ leaders, onSelect, selected }) {
                 <img src={e.wallet.avatar_url || AVATARS[e.wallet.avi || 0]} alt="" style={{ width: 18, height: 18, borderRadius: e.wallet.avatar_url ? 5 : 0, imageRendering: e.wallet.avatar_url ? "auto" : "pixelated", objectFit: "cover" }} />
               </div>
               <div style={{ minWidth: 0 }}>
-                <div style={{
-                  fontFamily: ff, fontSize: 12, fontWeight: 600, color: K.text,
-                  whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-                }}>{e.wallet.label}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  <span style={{
+                    fontFamily: ff, fontSize: 12, fontWeight: 600, color: K.text,
+                    whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                  }}>{e.wallet.label}</span>
+                  {e.strategies && e.strategies.length > 0 && <StrategyBadges strategies={e.strategies} max={1} size="sm" />}
+                </div>
                 <div style={{ fontFamily: mono, fontSize: 9, color: K.textMuted }}>{e.wr.toFixed(1)}% WR &middot; {e.trades} trades</div>
               </div>
             </div>
