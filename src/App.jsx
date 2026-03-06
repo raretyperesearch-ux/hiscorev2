@@ -339,6 +339,7 @@ const QUESTS = {
 
 /* ======================= STRATEGY BADGES ======================= */
 const STRATEGY_TYPES = {
+  // Original types
   sniper: { label: "Sniper", icon: "\u{1F3AF}", color: "#8b5cf6", desc: "Early token entries" },
   whale: { label: "Whale", icon: "\u{1F40B}", color: "#0ea5e9", desc: "Large position sizes" },
   scalper: { label: "Scalper", icon: "\u26A1", color: "#f59e0b", desc: "Quick in-and-out trades" },
@@ -347,6 +348,14 @@ const STRATEGY_TYPES = {
   mev: { label: "MEV", icon: "\u{1F916}", color: "#ef4444", desc: "MEV extraction" },
   copytrader: { label: "Copy", icon: "\u{1F465}", color: "#6366f1", desc: "Follows other wallets" },
   degen: { label: "Degen", icon: "\u{1F525}", color: "#f97316", desc: "High-risk plays" },
+  // API strategy types
+  mev_sandwich: { label: "MEV", icon: "\u{1F916}", color: "#ef4444", desc: "MEV sandwich attacks" },
+  arb_bot: { label: "Arb", icon: "\u{1F504}", color: "#ec4899", desc: "Arbitrage bot" },
+  token_sniper: { label: "Sniper", icon: "\u{1F3AF}", color: "#8b5cf6", desc: "Token sniper" },
+  multi_hop_arb: { label: "MultiHop", icon: "\u{1F504}", color: "#ec4899", desc: "Multi-hop arbitrage" },
+  leverage_loop: { label: "Leverage", icon: "\u{1F4C8}", color: "#f59e0b", desc: "Leverage looping" },
+  dex_trader: { label: "Trader", icon: "\u{1F4B9}", color: "#10b981", desc: "Active DEX trader" },
+  defi_farmer: { label: "Farmer", icon: "\u{1F33E}", color: "#22c55e", desc: "DeFi yield farmer" },
 };
 
 const WALLET_CLASSES = {
