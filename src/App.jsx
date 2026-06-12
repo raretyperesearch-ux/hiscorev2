@@ -2135,11 +2135,12 @@ export default function HiScore() {
       }}>
         {[
           { id: "ranks", label: "RANKS", icon: "\u2606" },
+          { id: "plink", label: "PLINK", icon: "P", href: "/plink" },
           { id: "alpha", label: "ALPHA", icon: "A" },
           { id: "recent", label: "RECENT", icon: "\u25CF" },
           { id: "search", label: "SEARCH", icon: "\u2315" },
         ].map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)} style={{
+          <button key={t.id} onClick={() => { if (t.href) window.location.href = t.href; else setTab(t.id); }} style={{
             flex: 1, display: "flex", flexDirection: "column",
             alignItems: "center", justifyContent: "center",
             padding: "6px 0 4px", gap: 1, border: "none", cursor: "pointer",
@@ -2209,11 +2210,12 @@ export default function HiScore() {
         }}>
           {[
             { id: "ranks", label: "HISCORE" },
+            { id: "plink", label: "PLINK", href: "/plink" },
             { id: "alpha", label: "ALPHA" },
             { id: "recent", label: "RECENT" },
             { id: "search", label: "LOOKUP" },
           ].map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)} style={{
+            <button key={t.id} onClick={() => { if (t.href) window.location.href = t.href; else setTab(t.id); }} style={{
               fontFamily: display, fontSize: 11, fontWeight: 500, letterSpacing: "0.05em",
               color: tab === t.id ? K.text : K.textMuted,
               background: tab === t.id ? K.white : "transparent",
